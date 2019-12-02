@@ -1,12 +1,10 @@
 import time
 from ptflops import get_model_complexity_info
 
-
 def run(point):
    try:
       batch_size = point['batch_size']
-      height = point['height']
-      width = point['width']
+      image_size = point['image_size']
       in_channels = point['in_channels']
       out_channels = point['out_channels']
       kernel_size = (point['kernel_size'],point['kernel_size'])
@@ -24,7 +22,7 @@ def run(point):
       print('torch version: ',torch.__version__,' torch file: ',torch.__file__)
 
 
-      inputs = torch.arange(batch_size * height * width * in_channels,dtype=torch.float).view((batch_size,in_channels,height,width))
+      inputs = torch.arange(batch_size * image_size * image_size * in_channels,dtype=torch.float).view((batch_size,in_channels,image_size,image_size))
       
       layer = torch.nn.Conv2d(in_channels,out_channels,kernel_size,stride=1)
       flops, params = get_model_complexity_info(layer, tuple(inputs.shape[1:]),as_strings=False)
@@ -48,14 +46,14 @@ def run(point):
 
       return ave_flops
    except:
+      print('exception thrown')
       return 0.
 
 
 if __name__ == '__main__':
    point = {
       'batch_size': 10,
-      'height': 512,
-      'width': 512,
+      'image_size': 512,
       'in_channels': 3,
       'out_channels': 64,
       'kernel_size': 4,
