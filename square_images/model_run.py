@@ -1,13 +1,13 @@
 import time
-from ptflops import get_model_complexity_info
 
 def run(point):
+   start = time.time()
    try:
       batch_size = point['batch_size']
       image_size = point['image_size']
       in_channels = point['in_channels']
       out_channels = point['out_channels']
-      kernel_size = (point['kernel_size'],point['kernel_size'])
+      kernel_size = point['kernel_size']
       omp_num_threads = point['omp_num_threads']
 
       import os
@@ -24,11 +24,10 @@ def run(point):
 
       inputs = torch.arange(batch_size * image_size * image_size * in_channels,dtype=torch.float).view((batch_size,in_channels,image_size,image_size))
       
-      layer = torch.nn.Conv2d(in_channels,out_channels,kernel_size,stride=1)
-      flops, params = get_model_complexity_info(layer, tuple(inputs.shape[1:]),as_strings=False)
-      print(flops)
-
+      layer = torch.nn.Conv2d(in_channels,out_channels,(kernel_size,kernel_size),stride=1)
       outputs = layer(inputs)
+
+      total_flop = kernel_size * kernel_size * in_channels * out_channels * outputs.shape[-1] * outputs.shape[-2] * batch_size
       
       runs = 5
       tot_time = 0.
@@ -40,13 +39,18 @@ def run(point):
 
       ave_time = tot_time / runs
 
-      print('flop = ',flops,'ave_time = ',ave_time)
+      print('total_flop = ',total_flop,'ave_time = ',ave_time)
 
-      ave_flops = flops / ave_time * batch_size
+      ave_flops = total_flop / ave_time
+      runtime = time.time() - start
+      print('runtime=',runtime,'ave_flops=',ave_flops)
 
       return ave_flops
-   except:
-      print('exception thrown')
+   except Exception as e:
+      import traceback
+      print('received exception: ',str(e))
+      print(traceback.print_exc())
+      print('runtime=',time.time() - start)
       return 0.
 
 
