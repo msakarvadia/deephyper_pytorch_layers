@@ -1,7 +1,7 @@
 from deephyper.benchmark import HpProblem
 
 Problem = HpProblem()
-Problem.add_dim('batch_size',(1,512))
+Problem.add_dim('batch_size',(1,1024))
 Problem.add_dim('image_size',(128,1024))
 Problem.add_dim('in_channels',(2,64))
 Problem.add_dim('out_channels',(2,64))
