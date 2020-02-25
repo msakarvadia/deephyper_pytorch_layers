@@ -10,12 +10,7 @@ Problem.add_dim("kernel_size", (2, 16))
 # Problem.add_dim('omp_num_threads',(8,64))
 
 Problem.add_starting_point(
-    batch_size=128,
-    height=512,
-    width=512,
-    in_channels=3,
-    out_channels=64,
-    kernel_size=3,
+    batch_size=128, height=512, width=512, in_channels=3, out_channels=64, kernel_size=3
 )  # omp_num_threads=64)
 
 if __name__ == "__main__":
