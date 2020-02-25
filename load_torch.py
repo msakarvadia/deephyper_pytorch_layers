@@ -3,7 +3,13 @@ import os
 use_knl = False
 # TODO(KGF): more robust way to detect presence of an Intel KNL device?
 # this might be unset for the default affinity? Check hostname for Theta instead?
-if os.environ.get("KMP_AFFINITY") is not None:
+#
+# export KMP_AFFINITY="granularity=fine,verbose,compact,1,0"
+#
+# print(f'os.environ["KMP_AFFINITY"] = {os.environ.get("KMP_AFFINITY")}')
+#
+# if os.environ.get("KMP_AFFINITY") is not None:
+if os.environ.get("CRAY_CPU_TARGET") == "mic-knl":
     use_knl = True
 
 
@@ -37,7 +43,13 @@ def cuda_vs_knl(point):
         omp_num_threads = point["omp_num_threads"]
         os.environ["OMP_NUM_THREADS"] = str(omp_num_threads)
         os.environ["MKL_NUM_THREADS"] = str(omp_num_threads)
-        os.environ["KMP_HW_SUBSET"] = "1s,%sc,2t" % str(omp_num_threads)
+        # New warning on Theta when using KMP_HW_SUBSET:
+        #
+        # OMP: Warning #244: KMP_HW_SUBSET: invalid value "1s,64c,2t", valid format is
+        # "N<item>[@N][,...][,Nt] (<item> can be S, N, L2, C, T  for Socket, NUMA Node, L2
+        # Cache, Core, Thread)".
+        #
+        # os.environ["KMP_HW_SUBSET"] = "1s,%sc,2t" % str(omp_num_threads)
         os.environ["KMP_AFFINITY"] = "granularity=fine,verbose,compact,1,0"
         os.environ["KMP_BLOCKTIME"] = str(0)
         os.environ["MKLDNN_VERBOSE"] = str(1)
