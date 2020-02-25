@@ -16,7 +16,11 @@ def cuda_vs_knl(point):
     if use_cuda:
         assert not use_knl
         print("torch.cuda.current_device() = {}".format(torch.cuda.current_device()))
-        print("CUDA_DEVICE_ORDER = {}".format(os.environ["CUDA_DEVICE_ORDER"]))
+        print(
+            "CUDA_DEVICE_ORDER = {}".format(
+                os.environ.get("CUDA_DEVICE_ORDER", "FASTEST_FIRST")
+            )
+        )
         print("CUDA_VISIBLE_DEVICES = {}".format(os.environ["CUDA_VISIBLE_DEVICES"]))
         # print("torch.cuda.device(0) = {}".format(torch.cuda.device(0)))
         # print("torch.cuda.device_count() = {}".format(torch.cuda.device_count()))
