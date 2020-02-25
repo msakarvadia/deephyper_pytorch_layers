@@ -1,3 +1,5 @@
+# Black will NOT touch comments
+# https://github.com/psf/black/issues/208
 [tool.black]
 line-length = 88
 target-version = ['py37']
