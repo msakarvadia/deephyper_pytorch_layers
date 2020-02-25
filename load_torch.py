@@ -3,7 +3,7 @@ import os
 use_knl = False
 # TODO(KGF): more robust way to detect presence of an Intel KNL device?
 # this might be unset for the default affinity? Check hostname for Theta instead?
-if os.environ["KMP_AFFINITY"] is not None:
+if os.environ.get("KMP_AFFINITY") is not None:
     use_knl = True
 
 
