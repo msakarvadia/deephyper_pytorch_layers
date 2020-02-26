@@ -28,7 +28,12 @@ if use_knl:
     )
 else:
     Problem.add_starting_point(
-        batch_size=128, height=512, width=512, in_channels=3, out_channels=64
+        batch_size=128,
+        height=512,
+        width=512,
+        in_channels=3,
+        out_channels=64,
+        kernel_size=3,
     )
 
 
