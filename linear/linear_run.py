@@ -33,7 +33,7 @@ def run(point):
         total_flop = batch_size * (2 * in_features - 1) * out_features
         layer = torch.nn.Linear(in_features, out_features, bias=bias).to(
             device, dtype=dtype
-        )  # dtype=float)
+        )  # dtype=float != torch.float
         outputs = layer(inputs)
 
         runs = 5
