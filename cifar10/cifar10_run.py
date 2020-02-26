@@ -1,4 +1,9 @@
 import time
+import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from load_torch import cuda_vs_knl, use_knl  # noqa
 
 
 def run(point):
@@ -15,22 +20,10 @@ def run(point):
         fc1_out = point["fc1_out"]
         fc2_out = point["fc2_out"]
         fc3_out = point["fc3_out"]
-
-        # omp_num_threads = point['omp_num_threads']
-
-        import os
-
-        # os.environ['OMP_NUM_THREADS'] = str(omp_num_threads)
-        # os.environ['MKL_NUM_THREADS'] = str(omp_num_threads)
-        # os.environ['KMP_HW_SUBSET'] = '1s,%sc,2t' % str(omp_num_threads)
-        # os.environ['KMP_AFFINITY'] = 'granularity=fine,verbose,compact,1,0'
-        # os.environ['KMP_BLOCKTIME'] = str(0)
-        # os.environ['MKLDNN_VERBOSE'] = str(1)
+        print(point)
         import torch
 
-        print("torch version: ", torch.__version__, " torch file: ", torch.__file__)
-        device = torch.device("cuda")
-        torch.backends.cudnn.benchmark = True
+        device, dtype = cuda_vs_knl(point)
 
         class Net(torch.nn.Module):
             def __init__(
@@ -51,7 +44,7 @@ def run(point):
                 self.flop = 0
                 self.conv1 = torch.nn.Conv2d(
                     conv1_in_chan, conv1_out_chan, conv1_kern
-                ).to(device, dtype=torch.float32)
+                ).to(device, dtype=dtype)
                 self.flop += (
                     conv1_kern ** 2
                     * conv1_in_chan
@@ -61,12 +54,12 @@ def run(point):
                 )
                 print(self.flop)
                 self.pool = torch.nn.MaxPool2d(pool_size, pool_size).to(
-                    device, dtype=torch.float32
+                    device, dtype=dtype
                 )
                 self.flop += image_size ** 2 * conv1_out_chan * batch_size
                 self.conv2 = torch.nn.Conv2d(
                     conv1_out_chan, conv2_out_chan, conv2_kern
-                ).to(device, dtype=torch.float32)
+                ).to(device, dtype=dtype)
                 self.flop += (
                     conv2_kern ** 2
                     * conv1_out_chan
@@ -78,15 +71,11 @@ def run(point):
                 self.view_size = conv2_out_chan * conv2_kern * conv2_kern
                 self.fc1 = torch.nn.Linear(
                     conv2_out_chan * conv2_kern * conv2_kern, fc1_out
-                ).to(device, dtype=torch.float32)
+                ).to(device, dtype=dtype)
                 self.flop += (2 * self.view_size - 1) * fc1_out * batch_size
-                self.fc2 = torch.nn.Linear(fc1_out, fc2_out).to(
-                    device, dtype=torch.float32
-                )
+                self.fc2 = torch.nn.Linear(fc1_out, fc2_out).to(device, dtype=dtype)
                 self.flop += (2 * fc1_out - 1) * fc2_out * batch_size
-                self.fc3 = torch.nn.Linear(fc2_out, fc3_out).to(
-                    device, dtype=torch.float32
-                )
+                self.fc3 = torch.nn.Linear(fc2_out, fc3_out).to(device, dtype=dtype)
                 self.flop += (2 * fc2_out - 1) * fc3_out * batch_size
 
             def forward(self, x):
@@ -99,9 +88,7 @@ def run(point):
                 return x
 
         inputs = torch.arange(
-            batch_size * image_size ** 2 * conv1_in_chan,
-            dtype=torch.float,
-            device=device,
+            batch_size * image_size ** 2 * conv1_in_chan, dtype=dtype, device=device
         ).view((batch_size, conv1_in_chan, image_size, image_size))
         net = Net(
             batch_size,
@@ -124,7 +111,7 @@ def run(point):
         tot_time = 0.0
         tt = time.time()
         for _ in range(runs):
-            outputs = net(inputs)
+            outputs = net(inputs)  # noqa: F841
             tot_time += time.time() - tt
             tt = time.time()
 
@@ -159,7 +146,9 @@ if __name__ == "__main__":
         "fc1_out": 120,
         "fc2_out": 84,
         "fc3_out": 10,
-        # 'omp_num_threads':64,
     }
+
+    if use_knl:
+        point["omp_num_threads"] = 64
 
     print("flops for this setting =", run(point))

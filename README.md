@@ -7,7 +7,7 @@ Use DeepHyper to find the max FLOPS for various PyTorch Layers.
 
 - [ ] Benchmark DeepHyper+Balsam throughput on various platforms.
 Taylor reports low utilization on Theta.
-
+- [ ] Compute and/or observed memory usage on GPU and KNL
 
 
 ### More PyTorch layers, etc.
@@ -26,3 +26,6 @@ Taylor reports low utilization on Theta.
 - [ ] `Transformer`, `TransformerEncoder`, `TransformerDecoder`
 
 See https://pytorch.org/docs/stable/nn.html
+
+
+## Balsam + DeepHyper performance

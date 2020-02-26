@@ -1,4 +1,11 @@
 import time
+import os
+import sys
+
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from load_torch import cuda_vs_knl, use_knl  # noqa
+
+# from ptflops import get_model_complexity_info
 
 
 def run(point):
@@ -9,31 +16,20 @@ def run(point):
         in_channels = point["in_channels"]
         out_channels = point["out_channels"]
         kernel_size = point["kernel_size"]
-        # omp_num_threads = point['omp_num_threads']
-
-        import os
-
-        # os.environ['OMP_NUM_THREADS'] = str(omp_num_threads)
-        # os.environ['MKL_NUM_THREADS'] = str(omp_num_threads)
-        # os.environ['KMP_HW_SUBSET'] = '1s,%sc,2t' % str(omp_num_threads)
-        # os.environ['KMP_AFFINITY'] = 'granularity=fine,verbose,compact,1,0'
-        # os.environ['KMP_BLOCKTIME'] = str(0)
-        # os.environ['MKLDNN_VERBOSE'] = str(1)
+        print(point)
         import torch
 
-        print("torch version: ", torch.__version__, " torch file: ", torch.__file__)
-        device = torch.device("cuda")
-        torch.backends.cudnn.benchmark = True
+        device, dtype = cuda_vs_knl(point)
 
         inputs = torch.arange(
             batch_size * image_size * image_size * in_channels,
-            dtype=torch.float,
+            dtype=dtype,
             device=device,
         ).view((batch_size, in_channels, image_size, image_size))
 
         layer = torch.nn.Conv2d(
             in_channels, out_channels, (kernel_size, kernel_size), stride=1
-        ).to(device, dtype=torch.float32)
+        ).to(device, dtype=dtype)
         outputs = layer(inputs)
 
         total_flop = (
@@ -79,7 +75,9 @@ if __name__ == "__main__":
         "in_channels": 3,
         "out_channels": 64,
         "kernel_size": 4,
-        # 'omp_num_threads':64,
     }
+
+    if use_knl:
+        point["omp_num_threads"] = 64
 
     print("flops for this setting =", run(point))

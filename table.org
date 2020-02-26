@@ -1,0 +1,4 @@
+| Machine            | Balsam job node | Nodes | DH num_workers | Time limit (min) | PyTorch Layer | Evaluations |
+| ALCF Theta         | MPI             |     8 |              8 |               60 | Linear        |        1190 |
+| Princeton Traverse | Serial          |     1 |              5 |                  | Linear        |             |
+| Princeton TigerGPU | Serial          |     1 |              5 |              120 | Linear        |         246 |
