@@ -24,24 +24,41 @@ def run(point):
         # batch_size *= 100
 
         inputs = torch.arange(
-            batch_size * in_features, dtype=dtype, device=device
+            batch_size * in_features, dtype=dtype, device=device,
+            requires_grad=True,
         ).view(
             (batch_size, in_features)
         )  # .type(dtype)
         # manually computing flops from the formulas given here:
         # https://machinethink.net/blog/how-fast-is-my-model/
         total_flop = batch_size * (2 * in_features - 1) * out_features
-        layer = torch.nn.Linear(in_features, out_features, bias=bias).to(
-            device, dtype=dtype
-        )  # dtype=float != torch.float
-        outputs = layer(inputs)
+        layer = torch.nn.Linear(in_features, out_features, bias=bias,
 
-        runs = 5
-        tot_time = 0.0
+        ).to(
+                                    device, dtype=dtype,
+        )  # dtype=float != torch.float
+
         tt = time.time()
+        outputs = layer(inputs)
+        print("Time for initial PyTorch layer evaluation = {}".format(
+            time.time() - tt))
+
+        runs = 10
+        tot_time = 0.0
         for _ in range(runs):
+            torch.cuda.synchronize()
+            tt = time.time()
+            inputs = torch.randn(
+                batch_size * in_features, dtype=dtype, device=device,
+            ).view((batch_size, in_features))
+            # inputs = inputs + inputs
+            # outputs = layer(inputs).detach()  # noqa F841
             outputs = layer(inputs)  # noqa F841
-            tot_time += time.time() - tt
+            torch.cuda.synchronize()
+            t_single_run = time.time() - tt
+            tot_time += t_single_run
+            print(t_single_run)
+            # del outputs
             tt = time.time()
 
         ave_time = tot_time / runs
@@ -62,15 +79,24 @@ def run(point):
 
 
 if __name__ == "__main__":
+    # batch_size,bias,in_features,out_features,objective,elapsed_sec
+    # 6871,0,8153,7533,1047811754548361.0,1037.2227339744568
+
     point = {
-        "batch_size": 10,
-        "in_features": 512,
-        "out_features": 512,
+        "batch_size": 6871,
+        "in_features": 8153,
+        "out_features": 7533,
+        "bias": 0,
+        #
+        # "batch_size": 10,
+        # "in_features": 512,
+        # "out_features": 512,
+        #
         # KGF: large problem size for 1st evaluation for testing:
         # "batch_size": 128,
         # "in_features": 4096,
         # "out_features": 4096,
-        "bias": 1,
+        #"bias": 1,
     }
 
     if use_knl:
