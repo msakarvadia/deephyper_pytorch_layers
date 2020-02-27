@@ -6,6 +6,8 @@ Use DeepHyper to find the max FLOPS for various PyTorch Layers.
 - [ ] Benchmark DeepHyper+Balsam throughput on various platforms.
 Taylor reports low utilization on Theta.
 - [ ] Compute and/or measure memory usage on GPU and KNL
+- [ ] Extend pairplot from DeepHyper's HPS analytics notebook to include
+- [ ] Try different `kappa` values with Random Forest surrogate model
 
 
 ### Bugs and run failures
@@ -58,6 +60,17 @@ batch_size,height,in_channels,kernel_size,out_channels,width,objective,elapsed_s
 510,184,61,11,56,1021,0.0,307.28731894493103
 ```
 
+- `cifar10/` errors:
+```
+Traceback (most recent call last):
+  File "/home/kfelker/deephyper_pytorch_layers/cifar10/cifar10_run.py", line 106, in run
+    outputs = net(inputs)
+  File "/home/kfelker/.conda/envs/frnn/lib/python3.6/site-packages/torch/nn/modules/module.py", line 547, in __call__
+    result = self.forward(*input, **kwargs)
+  File "/home/kfelker/deephyper_pytorch_layers/cifar10/cifar10_run.py", line 84, in forward
+    x = x.view(-1, self.view_size)
+RuntimeError: shape '[-1, 936]' is invalid for input of size 20800
+```
 
 
 ### More PyTorch layers, etc.
@@ -80,6 +93,7 @@ See https://pytorch.org/docs/stable/nn.html
 
 ## Balsam + DeepHyper performance
 All table entries were measured
+
 
 <table border="2" cellspacing="0" cellpadding="6" rules="groups" frame="hsides">
 
@@ -106,7 +120,7 @@ All table entries were measured
 <th scope="col" class="org-right">Nodes</th>
 <th scope="col" class="org-right">DH num<sub>workers</sub></th>
 <th scope="col" class="org-right">Time limit (min)</th>
-<th scope="col" class="org-left">PyTorch Layer</th>
+<th scope="col" class="org-left">PyTorch layer or model</th>
 <th scope="col" class="org-right">Evaluations</th>
 </tr>
 </thead>
@@ -119,7 +133,19 @@ All table entries were measured
 <td class="org-right">8</td>
 <td class="org-right">60</td>
 <td class="org-left">Linear</td>
-<td class="org-right">1190</td>
+<td class="org-right">1189</td>
+</tr>
+</tbody>
+
+<tbody>
+<tr>
+<td class="org-left">ALCF Theta</td>
+<td class="org-left">MPI</td>
+<td class="org-right">8</td>
+<td class="org-right">8</td>
+<td class="org-right">60</td>
+<td class="org-left">Conv2D</td>
+<td class="org-right">186</td>
 </tr>
 </tbody>
 
@@ -131,7 +157,7 @@ All table entries were measured
 <td class="org-right">5</td>
 <td class="org-right">60</td>
 <td class="org-left">Linear</td>
-<td class="org-right">186</td>
+<td class="org-right">185</td>
 </tr>
 </tbody>
 
@@ -140,10 +166,22 @@ All table entries were measured
 <td class="org-left">Princeton Traverse</td>
 <td class="org-left">MPI</td>
 <td class="org-right">2</td>
-<td class="org-right">10</td>
+<td class="org-right">2</td>
 <td class="org-right">60</td>
-<td class="org-left">Linear</td>
-<td class="org-right">&#xa0;</td>
+<td class="org-left">Cifar10</td>
+<td class="org-right">237 (mostly errors)</td>
+</tr>
+</tbody>
+
+<tbody>
+<tr>
+<td class="org-left">Princeton Traverse</td>
+<td class="org-left">MPI</td>
+<td class="org-right">2</td>
+<td class="org-right">2</td>
+<td class="org-right">60</td>
+<td class="org-left">Conv3D</td>
+<td class="org-right">226</td>
 </tr>
 </tbody>
 
@@ -155,7 +193,7 @@ All table entries were measured
 <td class="org-right">5</td>
 <td class="org-right">120</td>
 <td class="org-left">Linear</td>
-<td class="org-right">246</td>
+<td class="org-right">245</td>
 </tr>
 </tbody>
 
