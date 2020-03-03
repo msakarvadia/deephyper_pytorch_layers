@@ -3,7 +3,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from load_torch import cuda_vs_knl, use_knl  # noqa
+from torch_wrapper import load_cuda_vs_knl, benchmark_feedforward, use_knl  # noqa
 
 # from ptflops import get_model_complexity_info
 
@@ -18,53 +18,25 @@ def run(point):
         print(point)
         import torch
 
-        device, dtype = cuda_vs_knl(point)
+        device, dtype = load_cuda_vs_knl(point)
 
-        # KGF: attempt to max-out V100 utilization in nvidia-smi for sustained time
+        # KGF: attempt to max-out V100 utilization in nvidia-smi for a sustained time:
         # batch_size *= 100
 
         inputs = torch.arange(
-            batch_size * in_features, dtype=dtype, device=device,
-            requires_grad=True,
+            batch_size * in_features, dtype=dtype, device=device, requires_grad=True
         ).view(
             (batch_size, in_features)
         )  # .type(dtype)
         # manually computing flops from the formulas given here:
         # https://machinethink.net/blog/how-fast-is-my-model/
         total_flop = batch_size * (2 * in_features - 1) * out_features
-        layer = torch.nn.Linear(in_features, out_features, bias=bias,
-
-        ).to(
-                                    device, dtype=dtype,
+        layer = torch.nn.Linear(in_features, out_features, bias=bias).to(
+            device, dtype=dtype
         )  # dtype=float != torch.float
 
-        tt = time.time()
-        outputs = layer(inputs)
-        print("Time for initial PyTorch layer evaluation = {}".format(
-            time.time() - tt))
-
-        runs = 10
-        tot_time = 0.0
-        for _ in range(runs):
-            torch.cuda.synchronize()
-            tt = time.time()
-            inputs = torch.randn(
-                batch_size * in_features, dtype=dtype, device=device,
-            ).view((batch_size, in_features))
-            # inputs = inputs + inputs
-            # outputs = layer(inputs).detach()  # noqa F841
-            outputs = layer(inputs)  # noqa F841
-            torch.cuda.synchronize()
-            t_single_run = time.time() - tt
-            tot_time += t_single_run
-            print(t_single_run)
-            # del outputs
-            tt = time.time()
-
-        ave_time = tot_time / runs
-
+        ave_time = benchmark_feedforward(layer, inputs)
         print("flop = ", total_flop, "ave_time = ", ave_time)
-
         ave_flops = total_flop / ave_time
 
         print("runtime=", time.time() - start, "ave_flops=", ave_flops)
@@ -96,7 +68,7 @@ if __name__ == "__main__":
         # "batch_size": 128,
         # "in_features": 4096,
         # "out_features": 4096,
-        #"bias": 1,
+        # "bias": 1,
     }
 
     if use_knl:

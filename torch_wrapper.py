@@ -1,5 +1,10 @@
 import os
+import time
+import torch
 
+num_runs = 5  # number of independent trials (or feedforward passes)
+
+use_cuda = torch.cuda.is_available()
 use_knl = False
 # TODO(KGF): more robust way to detect presence of an Intel KNL device?
 # this might be unset for the default affinity? Check hostname for Theta instead?
@@ -13,11 +18,9 @@ if os.environ.get("CRAY_CPU_TARGET") == "mic-knl":
     use_knl = True
 
 
-def cuda_vs_knl(point):
-    import torch
-
+def load_cuda_vs_knl(point):
     print("torch version: ", torch.__version__, " torch file: ", torch.__file__)
-    use_cuda = torch.cuda.is_available()
+
     print("PyTorch: CUDA available? {}".format(use_cuda))
     if use_cuda:
         assert not use_knl
@@ -46,8 +49,8 @@ def cuda_vs_knl(point):
         # New warning on Theta when using KMP_HW_SUBSET:
         #
         # OMP: Warning #244: KMP_HW_SUBSET: invalid value "1s,64c,2t", valid format is
-        # "N<item>[@N][,...][,Nt] (<item> can be S, N, L2, C, T  for Socket, NUMA Node, L2
-        # Cache, Core, Thread)".
+        # "N<item>[@N][,...][,Nt] (<item> can be S, N, L2, C, T  for Socket, NUMA Node,
+        # L2 Cache, Core, Thread)".
         #
         # os.environ["KMP_HW_SUBSET"] = "1s,%sc,2t" % str(omp_num_threads)
         os.environ["KMP_AFFINITY"] = "granularity=fine,verbose,compact,1,0"
@@ -60,3 +63,25 @@ def cuda_vs_knl(point):
         dtype = torch.float32
         # dtype = torch.FloatTensor
     return device, dtype
+
+
+def benchmark_feedforward(layer, inputs):
+    tt = time.time()
+    outputs = layer(inputs)
+    print("Time for initial PyTorch layer evaluation = {} s".format(time.time() - tt))
+    tot_time = 0.0
+    for i in range(num_runs):
+        if use_cuda:
+            torch.cuda.synchronize()
+        tt = time.time()
+        # outputs = layer(inputs).detach()  # noqa F841
+        outputs = layer(inputs)  # noqa F841
+        if use_cuda:
+            torch.cuda.synchronize()
+        t_run = time.time() - tt
+        tot_time += t_run
+        print(f"Run {i}: {t_run} s")
+        # del outputs
+
+    ave_time = tot_time / num_runs
+    return ave_time
