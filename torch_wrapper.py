@@ -38,6 +38,8 @@ def load_cuda_vs_knl(point):
         device = torch.device("cuda")
         # https://pytorch.org/docs/stable/tensors.html
         dtype = torch.float  # equivalent to torch.float32
+        # dtype = torch.float16
+
         # dtype = torch.cuda.FloatTensor
         torch.backends.cudnn.benchmark = True
     else:

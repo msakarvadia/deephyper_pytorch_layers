@@ -4,7 +4,6 @@ import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from torch_wrapper import load_cuda_vs_knl, benchmark_feedforward, use_knl  # noqa
-
 # from ptflops import get_model_complexity_info
 
 
