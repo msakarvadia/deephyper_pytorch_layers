@@ -3,7 +3,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from load_torch import cuda_vs_knl, use_knl  # noqa
+from load_torch import load_cuda_vs_knl, benchmark_feedforward, use_knl  # noqa
 
 
 def run(point):
@@ -17,7 +17,7 @@ def run(point):
         print(point)
         import torch
 
-        device, dtype = cuda_vs_knl(point)
+        device, dtype = load_cuda_vs_knl(point)
 
         inputs = torch.arange(
             batch_size * image_size ** 3 * in_channels, dtype=dtype, device=device
@@ -26,8 +26,10 @@ def run(point):
         layer = torch.nn.Conv3d(
             in_channels, out_channels, kernel_size, stride=1, padding=1
         ).to(device, dtype=dtype)
-        outputs = layer(inputs)
 
+        ave_time = benchmark_feedforward(layer, inputs)
+
+        outputs = layer(inputs)
         total_flop = (
             kernel_size ** 3
             * in_channels
@@ -37,17 +39,6 @@ def run(point):
             * outputs.shape[-3]
             * batch_size
         )
-
-        runs = 5
-        tot_time = 0.0
-        tt = time.time()
-        for _ in range(runs):
-            outputs = layer(inputs)
-            tot_time += time.time() - tt
-            tt = time.time()
-
-        ave_time = tot_time / runs
-
         print("total_flop = ", total_flop, "ave_time = ", ave_time)
 
         ave_flops = total_flop / ave_time

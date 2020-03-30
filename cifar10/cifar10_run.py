@@ -3,7 +3,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from load_torch import cuda_vs_knl, use_knl  # noqa
+from load_torch import load_cuda_vs_knl, benchmark_feedforward, use_knl  # noqa
 
 
 def run(point):
@@ -23,7 +23,7 @@ def run(point):
         print(point)
         import torch
 
-        device, dtype = cuda_vs_knl(point)
+        device, dtype = load_cuda_vs_knl(point)
 
         class Net(torch.nn.Module):
             def __init__(
@@ -103,19 +103,10 @@ def run(point):
             fc2_out,
             fc3_out,
         )
-        outputs = net(inputs)
 
         total_flop = net.flop
 
-        runs = 5
-        tot_time = 0.0
-        tt = time.time()
-        for _ in range(runs):
-            outputs = net(inputs)  # noqa: F841
-            tot_time += time.time() - tt
-            tt = time.time()
-
-        ave_time = tot_time / runs
+        ave_time = benchmark_feedforward(net, inputs)
 
         print("total_flop = ", total_flop, "ave_time = ", ave_time)
 

@@ -3,7 +3,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from load_torch import cuda_vs_knl, use_knl  # noqa
+from load_torch import load_cuda_vs_knl, benchmark_feedforward, use_knl  # noqa
 
 # from ptflops import get_model_complexity_info
 
@@ -20,7 +20,7 @@ def run(point):
         print(point)
         import torch
 
-        device, dtype = cuda_vs_knl(point)
+        device, dtype = load_cuda_vs_knl(point)
 
         inputs = torch.arange(
             batch_size * height * width * in_channels, dtype=dtype, device=device
@@ -29,6 +29,8 @@ def run(point):
         layer = torch.nn.Conv2d(
             in_channels, out_channels, (kernel_size, kernel_size), stride=1, padding=1
         ).to(device, dtype=dtype)
+
+        ave_time = benchmark_feedforward(layer, inputs)
         # flops, params = get_model_complexity_info(layer,
         #         tuple(inputs.shape[1:]),as_strings=False)
         # print('ptflops=',flops*batch_size)
@@ -43,17 +45,6 @@ def run(point):
             * outputs.shape[-2]
             * batch_size
         )
-        # print('total_flop=',total_flop)
-
-        runs = 5
-        tot_time = 0.0
-        tt = time.time()
-        for i in range(runs):
-            outputs = layer(inputs)
-            tot_time += time.time() - tt
-            tt = time.time()
-
-        ave_time = tot_time / runs
 
         print("total_flop = ", total_flop, "ave_time = ", ave_time)
 
