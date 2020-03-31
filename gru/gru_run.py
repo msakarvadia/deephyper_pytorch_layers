@@ -47,7 +47,7 @@ def run(point):
         # [x, h]*A, for A=W_z, W_r, W all (m+n) x n, vector is 1x(m+n)
         # ---> 3*(m+n)*n MACs
         # ---> 3*(2*(m+n) - 1)*n FLOPs
-        total_flop = 3 * seq_length * batch_size * (2 * (in_features + hidden_units) - 1)
+        total_flop = 3 * seq_length * batch_size * (2 * (in_features + hidden_units) - 1)*hidden_units
         print("flop = ", total_flop, "ave_time = ", ave_time)
         ave_flops = total_flop / ave_time
 
@@ -65,10 +65,14 @@ def run(point):
 
 if __name__ == "__main__":
     point = {
-        "batch_size": 10,
-        "seq_length": 10,
-        "in_features": 512,
-        "hidden_units": 256,
+        # "batch_size": 10,
+        # "seq_length": 10,
+        "batch_size": 2048,
+        "seq_length": 128,
+        # "in_features": 512,
+        # "hidden_units": 256,
+        "in_features": 1024,
+        "hidden_units": 1024,
         "num_layers": 1,
         # "out_features": 512,
         "bias": 1,

@@ -48,7 +48,7 @@ def run(point):
         # [x, h]*A, for A=W_i, W_c, W_o, W_f all (m+n) x n, vector is 1x(m+n)
         # ---> 4*(m+n)*n MACs
         # ---> 4*(2*(m+n) - 1)*n FLOPs
-        total_flop = 4 * seq_length * batch_size * (2 * (in_features + hidden_units) - 1)
+        total_flop = 4 * seq_length * batch_size * (2 * (in_features + hidden_units) - 1)*hidden_units
         # Compare to incorrect LSTM answer from:
         # https://github.com/NVIDIA-developer-blog/code-samples/issues/7
         # which assumes input dim = hidden dim, and uses wrong matmul --> FLOPs formula
