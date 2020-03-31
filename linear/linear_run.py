@@ -3,8 +3,13 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from torch_wrapper import load_cuda_vs_knl, benchmark_feedforward, use_knl  # noqa
+from torch_wrapper import load_cuda_vs_knl, benchmark_feedforward, use_knl, use_cuda  # noqa
+from utils import get_first_gpu_memory_usage
 # from ptflops import get_model_complexity_info
+# https://github.com/sovrasov/flops-counter.pytorch
+#
+# from thop import profile
+# https://github.com/Lyken17/pytorch-OpCounter
 
 
 def run(point):
@@ -19,6 +24,12 @@ def run(point):
 
         device, dtype = load_cuda_vs_knl(point)
 
+        # KGF: check GPU memory usage baseline after loading PyTorch, but before any
+        # inputs, model, etc. are defined
+        init_mem = None
+        if use_cuda:
+            init_mem = get_first_gpu_memory_usage()
+
         # KGF: attempt to max-out V100 utilization in nvidia-smi for a sustained time:
         # batch_size *= 100
 
@@ -29,16 +40,23 @@ def run(point):
         )  # .type(dtype)
         # manually computing flops from the formulas given here:
         # https://machinethink.net/blog/how-fast-is-my-model/
+        #
+        # FC layer: x*W, x is 1xI vector, W is IxJ matrix
+        # ----> I*J MACs
+        # dot product (specifically) of n MACs = n multiplications, n-1 adds
+        # FC layer computes J dot products:
+        # ----> (2I-1)*J FLOPs
         total_flop = batch_size * (2 * in_features - 1) * out_features
         layer = torch.nn.Linear(in_features, out_features, bias=bias).to(
             device, dtype=dtype
         )  # dtype=float != torch.float
 
-        ave_time = benchmark_feedforward(layer, inputs)
+        ave_time = benchmark_feedforward(layer, inputs, init_mem=init_mem)
         print("flop = ", total_flop, "ave_time = ", ave_time)
         ave_flops = total_flop / ave_time
 
         print("runtime=", time.time() - start, "ave_flops=", ave_flops)
+
         return ave_flops
     except Exception as e:
         import traceback
