@@ -34,20 +34,24 @@ def run(point):
             (seq_length, batch_size, in_features)
         )
 
-        layer = torch.nn.GRU(in_features, hidden_units, num_layers,
+        layer = torch.nn.LSTM(in_features, hidden_units, num_layers,
                              # out_features,
-                             bias=bias).to(device, dtype=dtype)
+                              bias=bias).to(device, dtype=dtype)
 
         ave_time = benchmark_feedforward(layer, inputs, init_mem=init_mem)
 
-        # See Dey (2017), GRU has 3*(n^2 + m*n + n) trainable parameters across
-        # 6x matrices and 3x bias vectors (size 1xn), where m= input dim, n= hidden dim
+        # https://stats.stackexchange.com/questions/328926/how-many-parameters-are-in-a-gated-recurrent-unit-gru-recurrent-neural-network
+        # See Dey (2017), LSTM has 4*(n^2 + m*n + n) trainable parameters across
+        # 8x matrices and 4x bias vectors (size 1xn), where m= input dim, n= hidden dim
         #
-        # Or, consider only matrix-vector mults, using 3x combined matrices:
-        # [x, h]*A, for A=W_z, W_r, W all (m+n) x n, vector is 1x(m+n)
-        # ---> 3*(m+n)*n MACs
-        # ---> 3*(2*(m+n) - 1)*n FLOPs
-        total_flop = 3 * seq_length * batch_size * (2 * (in_features + hidden_units) - 1)
+        # Or, consider only matrix-vector mults, using 4x combined matrices:
+        # [x, h]*A, for A=W_i, W_c, W_o, W_f all (m+n) x n, vector is 1x(m+n)
+        # ---> 4*(m+n)*n MACs
+        # ---> 4*(2*(m+n) - 1)*n FLOPs
+        total_flop = 4 * seq_length * batch_size * (2 * (in_features + hidden_units) - 1)
+        # Compare to incorrect LSTM answer from:
+        # https://github.com/NVIDIA-developer-blog/code-samples/issues/7
+        # which assumes input dim = hidden dim, and uses wrong matmul --> FLOPs formula
         print("flop = ", total_flop, "ave_time = ", ave_time)
         ave_flops = total_flop / ave_time
 
