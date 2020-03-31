@@ -3,7 +3,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from load_torch import load_cuda_vs_knl, benchmark_feedforward, use_knl  # noqa
+from load_torch import load_cuda_vs_knl, benchmark_forward, use_knl  # noqa
 
 
 def run(point):
@@ -106,7 +106,7 @@ def run(point):
 
         total_flop = net.flop
 
-        ave_time = benchmark_feedforward(net, inputs)
+        ave_time = benchmark_forward(net, inputs)
 
         print("total_flop = ", total_flop, "ave_time = ", ave_time)
 

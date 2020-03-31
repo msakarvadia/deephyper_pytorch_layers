@@ -4,7 +4,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from load_torch import load_cuda_vs_knl, benchmark_feedforward, use_knl  # noqa
+from load_torch import load_cuda_vs_knl, benchmark_forward, use_knl  # noqa
 
 # from ptflops import get_model_complexity_info
 
@@ -34,7 +34,7 @@ def run(point):
             device, dtype=dtype
         )
 
-        ave_time = benchmark_feedforward(layer, inputs)
+        ave_time = benchmark_forward(layer, inputs)
 
         # flops, params = get_model_complexity_info(
         #     layer, tuple(inputs.shape[1:]), as_strings=False

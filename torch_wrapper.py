@@ -3,7 +3,7 @@ import time
 import torch
 from utils import get_first_gpu_memory_usage
 
-num_runs = 5  # number of independent trials (or feedforward passes)
+num_runs = 5  # number of independent trials (or forward passes)
 use_cuda = torch.cuda.is_available()
 use_knl = False
 # TODO(KGF): more robust way to detect presence of an Intel KNL device?
@@ -67,7 +67,7 @@ def load_cuda_vs_knl(point):
     return device, dtype
 
 
-def benchmark_feedforward(layer, inputs, init_mem=None):
+def benchmark_forward(layer, inputs, init_mem=None):
     tt = time.time()
     outputs = layer(inputs)
     print("Time for initial PyTorch layer evaluation = {} s".format(time.time() - tt))

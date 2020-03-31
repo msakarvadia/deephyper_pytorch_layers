@@ -3,7 +3,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from torch_wrapper import load_cuda_vs_knl, benchmark_feedforward, use_knl, use_cuda  # noqa
+from torch_wrapper import load_cuda_vs_knl, benchmark_forward, use_knl, use_cuda  # noqa
 from utils import get_first_gpu_memory_usage  # noqa
 # from ptflops import get_model_complexity_info
 
@@ -38,7 +38,7 @@ def run(point):
                              # out_features,
                               bias=bias).to(device, dtype=dtype)
 
-        ave_time = benchmark_feedforward(layer, inputs, init_mem=init_mem)
+        ave_time = benchmark_forward(layer, inputs, init_mem=init_mem)
 
         # https://stats.stackexchange.com/questions/328926/how-many-parameters-are-in-a-gated-recurrent-unit-gru-recurrent-neural-network
         # See Dey (2017), LSTM has 4*(n^2 + m*n + n) trainable parameters across
