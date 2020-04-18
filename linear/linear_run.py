@@ -8,7 +8,7 @@ from utils import get_first_gpu_memory_usage
 # from ptflops import get_model_complexity_info
 # https://github.com/sovrasov/flops-counter.pytorch
 #
-# from thop import profile
+from thop import profile, clever_format
 # https://github.com/Lyken17/pytorch-OpCounter
 
 
@@ -52,10 +52,32 @@ def run(point):
         )  # dtype=float != torch.float
 
         ave_time = benchmark_forward(layer, inputs, init_mem=init_mem)
+
         print("flop = ", total_flop, "ave_time = ", ave_time)
         ave_flops = total_flop / ave_time
 
         print("runtime=", time.time() - start, "ave_flops=", ave_flops)
+
+        # inputs = torch.arange(
+        #     batch_size * in_features, dtype=dtype, device=device,
+        # )
+        flop, params = profile(layer, inputs=(inputs,))
+        # flop, params = clever_format([flop, params], "%.3f")
+        print("-------")
+        print("THOP")
+        print("-------")
+        # E.g. for "in_features": 8153, "out_features": 7533, no bias
+        # 8153*7533 = 61,416,549 trainable parameters
+        # (# of trainable params = number of MACs, in this case)
+        # ----> 6871*(2*8153 -1)*7533 = 843934457115 FLOP
+        # But THOP returns:
+        # 843934466048.0 flop    61416548.0 parameters
+        # = 8933 more FLOP, 1 fewer trainable parameter
+        # BUG: https://github.com/Lyken17/pytorch-OpCounter/issues/71
+        print(f"{flop} flop    {params} parameters")
+        # KGF: note, THOP documentation is inconsistent; claims MACs, but must be FLOPs
+        flop, params = clever_format([flop, params], "%.3f")
+        print(f"{flop} flop    {params} parameters")
 
         return ave_flops
     except Exception as e:
