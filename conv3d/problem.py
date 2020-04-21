@@ -3,7 +3,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from load_torch import use_knl  # noqa
+from torch_wrapper import use_knl  # noqa
 
 Problem = HpProblem()
 Problem.add_dim("batch_size", (1, 32))

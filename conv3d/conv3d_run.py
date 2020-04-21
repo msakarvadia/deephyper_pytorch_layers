@@ -3,7 +3,7 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from load_torch import load_cuda_vs_knl, benchmark_forward, use_knl  # noqa
+from torch_wrapper import load_cuda_vs_knl, benchmark_forward, use_knl  # noqa
 
 
 def run(point):
