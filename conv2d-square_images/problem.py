@@ -24,7 +24,7 @@ if use_knl:
     )
 else:
     Problem.add_starting_point(
-        batch_size=128, image_size=32, in_channels=2, out_channels=2, kernel_size=2
+        batch_size=10, image_size=128, in_channels=2, out_channels=2, kernel_size=2
     )
 
 if __name__ == "__main__":
