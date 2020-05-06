@@ -18,7 +18,7 @@ def run(point):
         image_size = point["image_size"]
         in_channels = point["in_channels"]
         out_channels = point["out_channels"]
-        kernel_size = (point["kernel_size"], point["kernel_size"])
+        kernel_size = point["kernel_size"]
         print(point)
         import torch
 
