@@ -1,13 +1,35 @@
 import time
+import psutil
 import os
 import sys
+
+# import multiprocessing as mp
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from torch_wrapper import load_cuda_vs_knl, benchmark_forward, use_knl  # noqa
 
 
+def print_mem_cpu():
+    start = time.time()
+    while True:
+        mem = psutil.virtual_memory()
+        print(
+            "[%010d] pid=%010d total_mem=%010d free_mem=%05.2f cpu_usage=%05.2f"
+            % (
+                time.time() - start,
+                os.getpid(),
+                mem.total,
+                mem.free / mem.total * 100.0,
+                psutil.cpu_percent(),
+            )
+        )
+        time.sleep(1)
+
+
 def run(point):
     start = time.time()
+    # memorymon = mp.Process(target=print_mem_cpu)
+    # memorymon.start()
     try:
         batch_size = point["batch_size"]
         image_size = point["image_size"]
@@ -27,6 +49,7 @@ def run(point):
             in_channels, out_channels, kernel_size, stride=1, padding=1
         ).to(device, dtype=dtype)
 
+        # layer.eval()
         ave_time = benchmark_forward(layer, inputs)
 
         outputs = layer(inputs)
@@ -44,7 +67,8 @@ def run(point):
         ave_flops = total_flop / ave_time
         runtime = time.time() - start
         print("runtime=", runtime, "ave_flops=", ave_flops)
-
+        # memorymon.terminate()
+        # memorymon.join()
         return ave_flops
     except Exception as e:
         import traceback
@@ -52,6 +76,8 @@ def run(point):
         print("received exception: ", str(e), "for point: ", point)
         print(traceback.print_exc())
         print("runtime=", time.time() - start)
+        # memorymon.terminate()
+        # memorymon.join()
         return 0.0
 
 

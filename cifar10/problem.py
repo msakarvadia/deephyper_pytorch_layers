@@ -15,8 +15,10 @@ Problem.add_dim("conv1_kern", (3, 8))
 Problem.add_dim("pool_size", [2])
 Problem.add_dim("conv2_out_chan", (3, 64))
 Problem.add_dim("conv2_kern", (3, 8))
-Problem.add_dim("fc1_out", (64, 256))
-Problem.add_dim("fc2_out", (32, 128))
+# Problem.add_dim("fc1_out", (64, 256))
+# Problem.add_dim("fc2_out", (32, 128))
+Problem.add_dim("fc1_out", (64, 16384))
+Problem.add_dim("fc2_out", (32, 16384))
 Problem.add_dim("fc3_out", [10])
 
 if use_knl:
