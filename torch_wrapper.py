@@ -42,6 +42,10 @@ def load_cuda_vs_knl(point):
 
         # dtype = torch.cuda.FloatTensor
         torch.backends.cudnn.benchmark = True
+
+        # KGF: see below debugging comments
+        # torch.backends.cudnn.benchmark = False
+        # torch.backends.cudnn.deterministic = True
     else:
         assert use_knl
         # TODO(KGF): assuming KNL if not CUDA GPU; add KNL vs. "regular CPU" switch
@@ -68,12 +72,23 @@ def load_cuda_vs_knl(point):
 
 
 def benchmark_forward(layer, inputs, init_mem=None):
+    # KGF: attempt to debug abnormally-high FLOPs in Conv* layers on GPUs
+    # batch_size = 991
+    # image_size = 64
+    # in_channels = 8
+
     tt = time.time()
     outputs = layer(inputs)
     print("Time for initial PyTorch layer evaluation = {} s".format(time.time() - tt))
     tot_time = 0.0
     tot_mem = 0.0
     for i in range(num_runs):
+        # inputs = torch.rand(
+        #     batch_size * image_size * image_size * in_channels,
+        #     dtype=torch.float,
+        #     device=torch.device("cuda"),
+        # ).view((batch_size, in_channels, image_size, image_size))
+
         if use_cuda:
             torch.cuda.synchronize()
         tt = time.time()

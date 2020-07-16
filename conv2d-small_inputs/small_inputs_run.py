@@ -30,9 +30,9 @@ def run(point):
             device=device,
         ).view((batch_size, in_channels, image_size, image_size))
 
-        layer = torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride=1).to(
-            device, dtype=dtype
-        )
+        layer = torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride=1,
+                                #padding="same"
+        ).to(device, dtype=dtype)
 
         ave_time = benchmark_forward(layer, inputs)
 
@@ -50,6 +50,8 @@ def run(point):
             * outputs.shape[-2]
             * batch_size
         )
+
+        print(outputs.shape)
 
         print("flop = ", total_flop, "ave_time = ", ave_time)
         ave_flops = total_flop / ave_time * batch_size
@@ -70,10 +72,10 @@ def run(point):
 
 if __name__ == "__main__":
     point = {
-        "batch_size": 10,
-        "image_size": 512,
-        "in_channels": 3,
-        "out_channels": 64,
+        "batch_size": 991,
+        "image_size": 64,
+        "in_channels": 8,
+        "out_channels": 16,
         "kernel_size": 4,
     }
 
