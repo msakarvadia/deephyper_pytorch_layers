@@ -2,7 +2,7 @@ from deephyper.benchmark import HpProblem
 import os
 import sys
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from torch_wrapper import use_knl  # noqa
 
 Problem = HpProblem()
