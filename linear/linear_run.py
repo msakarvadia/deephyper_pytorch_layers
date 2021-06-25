@@ -32,7 +32,6 @@ def run(point):
 
         # KGF: attempt to max-out V100 utilization in nvidia-smi for a sustained time:
         # batch_size *= 100
-
         inputs = torch.arange(
             batch_size * in_features, dtype=dtype, device=device, requires_grad=True
         ).view(
@@ -95,10 +94,10 @@ if __name__ == "__main__":
     # 6871,0,8153,7533,1047811754548361.0,1037.2227339744568
 
     point = {
-        "batch_size": 6871,
-        "in_features": 8153,
-        "out_features": 7533,
-        "bias": 0,
+        "batch_size": 6692,
+        "in_features": 4092,
+        "out_features": 7261,
+        "bias": 1,
         #
         # "batch_size": 10,
         # "in_features": 512,

@@ -126,16 +126,16 @@ def run(point):
 
 if __name__ == "__main__":
     point = {
-        "batch_size": 10,
+        "batch_size": 23,
         "image_size": 32,
         "conv1_in_chan": 3,
-        "conv1_out_chan": 6,
-        "conv1_kern": 5,
+        "conv1_out_chan": 54,
+        "conv1_kern": 6,
         "pool_size": 2,
-        "conv2_out_chan": 16,
-        "conv2_kern": 5,
-        "fc1_out": 120,
-        "fc2_out": 84,
+        "conv2_out_chan": 56,
+        "conv2_kern": 4,
+        "fc1_out": 15545,
+        "fc2_out": 15002,
         "fc3_out": 10,
     }
 
