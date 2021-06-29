@@ -83,11 +83,11 @@ def run(point):
 
 if __name__ == "__main__":
     point = {
-        "batch_size": 10,
-        "image_size": 128,
-        "in_channels": 3,
-        "out_channels": 3,
-        "kernel_size": 4,
+        "batch_size": 32,
+        "image_size": 94,
+        "in_channels": 64,
+        "out_channels": 64,
+        "kernel_size": 9,
     }
 
     if use_knl:

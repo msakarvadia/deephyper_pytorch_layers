@@ -56,6 +56,9 @@ def run(point):
                 self.pool = torch.nn.MaxPool2d(pool_size, pool_size).to(
                     device, dtype=dtype
                 )
+                self.conv1_size = image_size-conv1_kern + 1 
+                self.maxpool1_size = int((self.conv1_size - pool_size)/pool_size + 1)
+                
                 self.flop += image_size ** 2 * conv1_out_chan * batch_size
                 self.conv2 = torch.nn.Conv2d(
                     conv1_out_chan, conv2_out_chan, conv2_kern
@@ -68,11 +71,18 @@ def run(point):
                     * batch_size
                 )
                 print(self.flop)
-                self.view_size = conv2_out_chan * conv2_kern * conv2_kern
+                self.conv2_size = self.maxpool1_size - conv2_kern + 1
+                self.maxpool2_size = int((self.conv2_size - pool_size)/pool_size + 1 )
+                self.view_size = conv2_out_chan * self.maxpool2_size * self.maxpool2_size
+
+                                    
+
                 self.fc1 = torch.nn.Linear(
-                    conv2_out_chan * conv2_kern * conv2_kern, fc1_out
+                    self.view_size, fc1_out
                 ).to(device, dtype=dtype)
                 self.flop += (2 * self.view_size - 1) * fc1_out * batch_size
+
+
                 self.fc2 = torch.nn.Linear(fc1_out, fc2_out).to(device, dtype=dtype)
                 self.flop += (2 * fc1_out - 1) * fc2_out * batch_size
                 self.fc3 = torch.nn.Linear(fc2_out, fc3_out).to(device, dtype=dtype)
@@ -126,16 +136,16 @@ def run(point):
 
 if __name__ == "__main__":
     point = {
-        "batch_size": 10,
+        "batch_size": 23,
         "image_size": 32,
         "conv1_in_chan": 3,
-        "conv1_out_chan": 6,
-        "conv1_kern": 5,
+        "conv1_out_chan": 54,
+        "conv1_kern": 6,
         "pool_size": 2,
-        "conv2_out_chan": 16,
-        "conv2_kern": 5,
-        "fc1_out": 120,
-        "fc2_out": 84,
+        "conv2_out_chan": 56,
+        "conv2_kern": 4,
+        "fc1_out": 15545,
+        "fc2_out": 15002,
         "fc3_out": 10,
     }
 

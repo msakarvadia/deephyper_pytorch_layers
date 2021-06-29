@@ -46,6 +46,10 @@ def load_cuda_vs_knl(point):
         # KGF: see below debugging comments
         # torch.backends.cudnn.benchmark = False
         # torch.backends.cudnn.deterministic = True
+	
+	#TODO toggle on an off: (next two variables)
+        #torch.backends.cuda.matmul.allow_tf32=False
+        #torch.backends.cudnn.allow_tf32=False
         print(f"torch.backends.cuda.matmul.allow_tf32={torch.backends.cuda.matmul.allow_tf32}")
         print(f"torch.backends.cudnn.allow_tf32={torch.backends.cudnn.allow_tf32}")
     else:

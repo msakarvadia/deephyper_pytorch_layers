@@ -51,12 +51,17 @@ def run(point):
             self.conv1 = torch.nn.Conv2d(conv1_in_chan, conv1_out_chan, conv1_kern)
             self.flop += conv1_kern**2 * conv1_in_chan * conv1_out_chan * image_size**2 * batch_size
             self.pool  = torch.nn.MaxPool2d(pool_size, pool_size)
+            self.conv1_size = image_size-conv1_kern + 1 
+            self.maxpool1_size = int((self.conv1_size - pool_size)/pool_size + 1)
             self.flop += image_size**2 * conv1_out_chan * batch_size
+
             self.conv2 = torch.nn.Conv2d(conv1_out_chan,conv2_out_chan,conv2_kern)
             self.flop += conv2_kern**2 * conv1_out_chan * conv2_out_chan * int(image_size/pool_size)**2 * batch_size
-            self.view_size = conv2_out_chan * conv2_kern * conv2_kern
+            self.conv2_size = self.maxpool1_size - conv2_kern + 1
+            self.maxpool2_size = int((self.conv2_size - pool_size)/pool_size + 1 )
 
-            self.fc1   = torch.nn.Linear(conv2_out_chan * conv2_kern * conv2_kern, fc1_out)
+            self.view_size = conv2_out_chan * self.maxpool2_size * self.maxpool2_size
+            self.fc1   = torch.nn.Linear(self.view_size, fc1_out)
             self.flop += (2*self.view_size - 1) * fc1_out * batch_size
             self.fc2   = torch.nn.Linear(fc1_out, fc2_out)
             self.flop += (2*fc1_out - 1) * fc2_out * batch_size
