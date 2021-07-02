@@ -17,6 +17,13 @@ def run(point):
         pool_size = point["pool_size"]
         conv2_out_chan = point["conv2_out_chan"]
         conv2_kern = point["conv2_kern"]
+        conv3_out_chan = point["conv3_out_chan"]
+        conv3_kern = point["conv3_kern"]
+        conv4_out_chan = point["conv4_out_chan"]
+        conv4_kern = point["conv4_kern"]
+        conv5_out_chan = point["conv5_out_chan"]
+        conv5_kern = point["conv5_kern"]
+        adaptive_pool_dim = point["adaptive_pool_dim"]
         fc1_out = point["fc1_out"]
         fc2_out = point["fc2_out"]
         fc3_out = point["fc3_out"]
@@ -28,36 +35,62 @@ def run(point):
 
         class AlexNet(nn.Module):
 
-            def __init__(self, num_classes: int = 1000) -> None:
+            def __init__( 
+                self,
+                batch_size,
+                image_size,
+                conv1_in_chan,
+                conv1_out_chan,
+                conv1_kern,
+                pool_size,
+                conv2_out_chan,
+                conv2_kern,
+                conv3_out_chan,
+                conv3_kern,
+                conv4_out_chan,
+                conv4_kern,
+                conv5_out_chan,
+                conv5_kern,
+                adaptive_pool_dim,
+                fc1_out,
+                fc2_out,
+                fc3_out
+            ):
                 super(AlexNet, self).__init__()
+                #TODO replace all hyper parameters with variable
                 self.flop = 0
                 self.features = nn.Sequential(
-                    nn.Conv2d(3, 64, kernel_size=11, stride=4, padding=2),
+                    #1st conv
+                    nn.Conv2d(conv1_in_chan, conv1_out_chan, kernel_size=conv1_kern, stride=4, padding=2),
                     nn.ReLU(inplace=True),
-                    nn.MaxPool2d(kernel_size=3, stride=2),
-                    nn.Conv2d(64, 192, kernel_size=5, padding=2),
+                    nn.MaxPool2d(kernel_size=pool_size, stride=2),
+                    #2nd conv
+                    nn.Conv2d(conv1_out_chan, conv2_out_chan, kernel_size=conv2_kern, padding=2),
                     nn.ReLU(inplace=True),
-                    nn.MaxPool2d(kernel_size=3, stride=2),
-                    nn.Conv2d(192, 384, kernel_size=3, padding=1),
+                    nn.MaxPool2d(kernel_size=pool_size, stride=2),
+                    #3rd conv
+                    nn.Conv2d(conv2_out_chan, conv3_out_chan, kernel_size=conv3_kern, padding=1),
                     nn.ReLU(inplace=True),
-                    nn.Conv2d(384, 256, kernel_size=3, padding=1),
+                    #4th conv
+                    nn.Conv2d(conv3_out_chan, conv4_out_chan, kernel_size=conv4_kern, padding=1),
                     nn.ReLU(inplace=True),
-                    nn.Conv2d(256, 256, kernel_size=3, padding=1),
+                    #5th conv
+                    nn.Conv2d(conv4_out_chan, conv5_out_chan, kernel_size=conv5_kern, padding=1),
                     nn.ReLU(inplace=True),
-                    nn.MaxPool2d(kernel_size=3, stride=2),
-                ).to(device, dtype=dtype)
+                    nn.MaxPool2d(kernel_size=pool_size, stride=2),
+                )
 
-                self.avgpool = nn.AdaptiveAvgPool2d((6, 6)).to(device, dtype=dtype)
+                self.avgpool = nn.AdaptiveAvgPool2d((adaptive_pool_dim, adaptive_pool_dim))
 
                 self.classifier = nn.Sequential(
                     nn.Dropout(),
-                    nn.Linear(256 * 6 * 6, 4096),
+                    nn.Linear(conv5_out_chan * adaptive_pool_dim**2, fc1_out),
                     nn.ReLU(inplace=True),
                     nn.Dropout(),
-                    nn.Linear(4096, 4096),
+                    nn.Linear(fc1_out, fc2_out),
                     nn.ReLU(inplace=True),
-                    nn.Linear(4096, num_classes),
-                ).to(device, dtype=dtype)
+                    nn.Linear(fc2_out, fc3_out),
+                )
 
                 #TODO update flop calculations:
                 self.flop += 1000
@@ -73,7 +106,26 @@ def run(point):
             batch_size * image_size ** 2 * conv1_in_chan, dtype=dtype, device=device
         ).view((batch_size, conv1_in_chan, image_size, image_size))
 
-        net = AlexNet()
+        #create and move model to GPU
+        net = AlexNet(
+                batch_size,
+                image_size,
+                conv1_in_chan,
+                conv1_out_chan,
+                conv1_kern,
+                pool_size,
+                conv2_out_chan,
+                conv2_kern,
+                conv3_out_chan,
+                conv3_kern,
+                conv4_out_chan,
+                conv4_kern,
+                conv5_out_chan,
+                conv5_kern,
+                adaptive_pool_dim,
+                fc1_out,
+                fc2_out,
+                fc3_out).to(device, dtype=dtype)
 
         total_flop = net.flop
 
@@ -86,6 +138,7 @@ def run(point):
         print("runtime=", runtime, "ave_flops=", ave_flops)
 
         return ave_flops
+
     except Exception as e:
         import traceback
 
@@ -105,6 +158,13 @@ if __name__ == "__main__":
         "pool_size": 2,
         "conv2_out_chan": 56,
         "conv2_kern": 4,
+        "conv3_out_chan": 128,
+        "conv3_kern": 4,
+        "conv4_out_chan": 256,
+        "conv4_kern": 5,
+        "conv5_out_chan": 256,
+        "conv5_kern": 2,
+        "adaptive_pool_dim": 6,
         "fc1_out": 15545,
         "fc2_out": 15002,
         "fc3_out": 10,
