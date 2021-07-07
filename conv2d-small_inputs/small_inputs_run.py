@@ -54,7 +54,7 @@ def run(point):
         print(outputs.shape)
 
         print("flop = ", total_flop, "ave_time = ", ave_time)
-        ave_flops = total_flop / ave_time * batch_size
+        ave_flops = total_flop / ave_time 
         runtime = time.time() - start
         print("runtime=", runtime, "ave_flops=", ave_flops)
 
