@@ -1,0 +1,24 @@
+Jobid: 10025387
+qsub -A datascience -t 480 -q full-node -n 1 -I -M msakarvadia@anl.gov
+Thu Jul 08 20:00:42 2021 +0000 (UTC) submitted with cwd set to: /gpfs/mira-home/mansisak/deephyper_pytorch_layers/alexnet
+jobid 10025387 submitted from terminal /dev/pts/17
+Thu Jul 08 20:00:55 2021 +0000 (UTC) 
+Thu Jul 08 20:00:55 2021 +0000 (UTC) Command: '/usr/bin/ssh' 'thetagpu18' '/usr/bin/cobalt-launcher.py' '--nf' '/var/tmp/cobalt.10025387' '--jobid' '10025387' '--cwd' '/gpfs/mira-home/mansisak/deephyper_pytorch_layers/alexnet' '--env' 'COBALT_JOBID=10025387' '/bin/sleep' '28800'
+Thu Jul 08 20:00:55 2021 +0000 (UTC) 
+Thu Jul 08 20:00:55 2021 +0000 (UTC) Environment:
+Thu Jul 08 20:00:55 2021 +0000 (UTC) SHELL=/bin/bash
+Thu Jul 08 20:00:55 2021 +0000 (UTC) COBALT_NODEFILE=/tmp/tmpI5dV3p
+Thu Jul 08 20:00:55 2021 +0000 (UTC) COBALT_PARTNAME=thetagpu18
+Thu Jul 08 20:00:55 2021 +0000 (UTC) COBALT_JOBID=10025387
+Thu Jul 08 20:00:55 2021 +0000 (UTC) COBALT_STARTTIME=1625774445
+Thu Jul 08 20:00:55 2021 +0000 (UTC) LOGNAME=mansisak
+Thu Jul 08 20:00:55 2021 +0000 (UTC) USER=mansisak
+Thu Jul 08 20:00:55 2021 +0000 (UTC) COBALT_ENDTIME=1625803245
+Thu Jul 08 20:00:55 2021 +0000 (UTC) COBALT_PARTSIZE=1
+Thu Jul 08 20:00:55 2021 +0000 (UTC) HOME=/home/mansisak
+Thu Jul 08 20:00:55 2021 +0000 (UTC) COBALT_JOBSIZE=1
+Thu Jul 08 20:00:55 2021 +0000 (UTC) 
+Thu Jul 08 20:00:55 2021 +0000 (UTC) Info: stdin received from /dev/null
+Thu Jul 08 20:00:55 2021 +0000 (UTC) Info: stdout sent to /gpfs/mira-home/mansisak/deephyper_pytorch_layers/alexnet/10025387.output
+Thu Jul 08 20:00:55 2021 +0000 (UTC) Info: stderr sent to /gpfs/mira-home/mansisak/deephyper_pytorch_layers/alexnet/10025387.error
+Thu Jul 08 20:00:55 2021 +0000 (UTC) 
