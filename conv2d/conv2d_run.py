@@ -64,12 +64,12 @@ def run(point):
 
 if __name__ == "__main__":
     point = {
-        "batch_size": 60,
-        "height": 525,
-        "width": 194,
-        "in_channels": 64,
-        "out_channels": 64,
-        "kernel_size": 16,
+        "batch_size": 700,
+        "height": 64,
+        "width": 64,
+        "in_channels": 8,
+        "out_channels": 16,
+        "kernel_size": 4,
     }
 
     if use_knl:

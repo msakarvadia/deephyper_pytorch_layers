@@ -50,8 +50,10 @@ def load_cuda_vs_knl(point):
 	#TODO toggle on an off: (next two variables)
         #torch.backends.cuda.matmul.allow_tf32=False
         #torch.backends.cudnn.allow_tf32=False
+        #torch.backends.cudnn.benchmark=False
         print(f"torch.backends.cuda.matmul.allow_tf32={torch.backends.cuda.matmul.allow_tf32}")
         print(f"torch.backends.cudnn.allow_tf32={torch.backends.cudnn.allow_tf32}")
+        print(f"torch.backends.cudnn.benchmark={torch.backends.cudnn.benchmark}")
     else:
         assert use_knl
         # TODO(KGF): assuming KNL if not CUDA GPU; add KNL vs. "regular CPU" switch

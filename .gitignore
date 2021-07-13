@@ -1,5 +1,11 @@
 # ignore cobalt logs
 ??????.*
+*.cobaltlog
+*.error
+*.output
+
+#Nsight profile
+*.qdrep
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

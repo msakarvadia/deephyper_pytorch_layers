@@ -92,60 +92,60 @@ def run(point):
                 #FLOPS claculations for convolutional layers:
                 #1st conv2d
                 #TODO fix the image_size for each layer, and account for size change after pooling layers!!
-                self.input_size = image_size
+                layer_input_size = image_size
 
                 self.flop += (
                     conv1_kern ** 2
                     * conv1_in_chan
                     * conv1_out_chan
-                    * self.input_size ** 2
+                    * layer_input_size ** 2
                     * batch_size
                 )
                 #(((W - K + 2P)/S)+1)
-                self.input_size = int(((image_size - conv1_kern +2*2)/ 4) + 1) 
-                self.input_size = int(((self.input_size - pool_size_1 )/ 2) + 1) 
+                layer_input_size = int(((image_size - conv1_kern +2*2)/ 4) + 1) 
+                layer_input_size = int(((layer_input_size - pool_size_1 )/ 2) + 1) 
 
                 #2nd conv2d
                 self.flop += (
                     conv2_kern ** 2
                     * conv1_out_chan
                     * conv2_out_chan
-                    * self.input_size ** 2
+                    * layer_input_size ** 2
                     * batch_size
                 )
-                self.input_size = int(((self.input_size - conv2_kern +2*2)/ 1) + 1) 
-                self.input_size = int(((self.input_size - pool_size_2 )/ 2) + 1) 
+                layer_input_size = int(((layer_input_size - conv2_kern +2*2)/ 1) + 1) 
+                layer_input_size = int(((layer_input_size - pool_size_2 )/ 2) + 1) 
 
                 #3rd conv2d
                 self.flop += (
                     conv3_kern ** 2
                     * conv2_out_chan
                     * conv3_out_chan
-                    * self.input_size ** 2
+                    * layer_input_size ** 2
                     * batch_size
                 )
-                self.input_size = int(((self.input_size - conv3_kern +2*1)/ 1) + 1) 
+                layer_input_size = int(((layer_input_size - conv3_kern +2*1)/ 1) + 1) 
 
                 #4st conv2d
                 self.flop += (
                     conv4_kern ** 2
                     * conv3_out_chan
                     * conv4_out_chan
-                    * self.input_size ** 2
+                    * layer_input_size ** 2
                     * batch_size
                 )
-                self.input_size = int(((self.input_size - conv4_kern +2*1)/ 1) + 1) 
+                layer_input_size = int(((layer_input_size - conv4_kern +2*1)/ 1) + 1) 
 
                 #5th conv2d
                 self.flop += (
                     conv5_kern ** 2
                     * conv4_out_chan
                     * conv5_out_chan
-                    * self.input_size ** 2
+                    * layer_input_size ** 2
                     * batch_size
                 )
-                self.input_size = int(((self.input_size - conv5_kern +2*1)/ 1) + 1) 
-                self.input_size = int(((self.input_size - pool_size_5 )/ 2) + 1) 
+                layer_input_size = int(((layer_input_size - conv5_kern +2*1)/ 1) + 1) 
+                layer_input_size = int(((layer_input_size - pool_size_5 )/ 2) + 1) 
 
                 self.avgpool = nn.AdaptiveAvgPool2d((adaptive_pool_dim, adaptive_pool_dim))
 
