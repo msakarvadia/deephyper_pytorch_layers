@@ -93,6 +93,7 @@ def run(point):
                 #1st conv2d
                 #TODO fix the image_size for each layer, and account for size change after pooling layers!!
                 layer_input_size = image_size
+                print(layer_input_size)
 
                 self.flop += (
                     conv1_kern ** 2
@@ -103,7 +104,10 @@ def run(point):
                 )
                 #(((W - K + 2P)/S)+1)
                 layer_input_size = int(((image_size - conv1_kern +2*2)/ 4) + 1) 
+                print(layer_input_size)
                 layer_input_size = int(((layer_input_size - pool_size_1 )/ 2) + 1) 
+
+                print(layer_input_size)
 
                 #2nd conv2d
                 self.flop += (
@@ -114,7 +118,10 @@ def run(point):
                     * batch_size
                 )
                 layer_input_size = int(((layer_input_size - conv2_kern +2*2)/ 1) + 1) 
+                print(layer_input_size)
                 layer_input_size = int(((layer_input_size - pool_size_2 )/ 2) + 1) 
+
+                print(layer_input_size)
 
                 #3rd conv2d
                 self.flop += (
@@ -126,6 +133,8 @@ def run(point):
                 )
                 layer_input_size = int(((layer_input_size - conv3_kern +2*1)/ 1) + 1) 
 
+                print(layer_input_size)
+
                 #4st conv2d
                 self.flop += (
                     conv4_kern ** 2
@@ -136,6 +145,8 @@ def run(point):
                 )
                 layer_input_size = int(((layer_input_size - conv4_kern +2*1)/ 1) + 1) 
 
+                print(layer_input_size)
+
                 #5th conv2d
                 self.flop += (
                     conv5_kern ** 2
@@ -145,7 +156,10 @@ def run(point):
                     * batch_size
                 )
                 layer_input_size = int(((layer_input_size - conv5_kern +2*1)/ 1) + 1) 
+                print(layer_input_size)
                 layer_input_size = int(((layer_input_size - pool_size_5 )/ 2) + 1) 
+
+                print(layer_input_size)
 
                 self.avgpool = nn.AdaptiveAvgPool2d((adaptive_pool_dim, adaptive_pool_dim))
 
@@ -233,26 +247,26 @@ def run(point):
 
 if __name__ == "__main__":
     point = {
-        "batch_size": 23,
-        "image_size": 64,
+        "batch_size": 64,
+        "image_size": 224,
         "conv1_in_chan": 3,
-        "conv1_out_chan": 54,
-        "conv1_kern": 6,
-        "pool_size_1": 2,
-        "pool_size_2": 2,
-        "pool_size_5": 2,
-        "conv2_out_chan": 56,
-        "conv2_kern": 4,
-        "conv3_out_chan": 128,
-        "conv3_kern": 4,
-        "conv4_out_chan": 256,
-        "conv4_kern": 5,
+        "conv1_out_chan": 96,
+        "conv1_kern": 11,
+        "pool_size_1": 3,
+        "pool_size_2": 3,
+        "pool_size_5": 3,
+        "conv2_out_chan": 256,
+        "conv2_kern": 3,
+        "conv3_out_chan": 384,
+        "conv3_kern": 3,
+        "conv4_out_chan": 384,
+        "conv4_kern": 3,
         "conv5_out_chan": 256,
-        "conv5_kern": 2,
+        "conv5_kern": 3,
         "adaptive_pool_dim": 6,
-        "fc1_out": 15545,
-        "fc2_out": 15002,
-        "fc3_out": 10,
+        "fc1_out": 4096,
+        "fc2_out": 4096,
+        "fc3_out": 1000,
     }
 
     if use_knl:
