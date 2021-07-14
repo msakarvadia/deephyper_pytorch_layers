@@ -47,9 +47,17 @@ def run(point):
                 self.conv1 = torch.nn.Conv2d(
                     conv1_in_chan, conv1_out_chan, conv1_kern
                 ).to(device, dtype=dtype)
+                self.flop += (
+                    conv1_kern ** 2
+                    * conv1_in_chan
+                    * conv1_out_chan
+                    * image_size ** 2
+                    * batch_size
+                )
                 self.pool = torch.nn.MaxPool2d(pool_size, pool_size).to(
                     device, dtype=dtype
                 )
+
                 self.conv1_size = image_size-conv1_kern + 1 
                 self.maxpool1_size = int((self.conv1_size - pool_size)/pool_size + 1)
                 
@@ -57,6 +65,17 @@ def run(point):
                 self.conv2 = torch.nn.Conv2d(
                     conv1_out_chan, conv2_out_chan, conv2_kern
                 ).to(device, dtype=dtype)
+                self.flop += (
+                    conv2_kern ** 2
+                    * conv1_out_chan
+                    * conv2_out_chan
+                    * int(image_size / pool_size) ** 2
+                    * batch_size
+                )
+
+                #account for loop of convolutions:
+                self.flop = self.flop * n_conv_block
+
                 self.conv2_size = self.maxpool1_size - conv2_kern + 1
                 self.maxpool2_size = int((self.conv2_size - pool_size)/pool_size + 1 )
                 self.view_size = conv2_out_chan * self.maxpool2_size * self.maxpool2_size
@@ -64,46 +83,24 @@ def run(point):
                                     
 
                 self.fc1 = torch.nn.Linear(self.view_size, fc1_out).to(device, dtype=dtype)
+                self.flop += (2 * self.view_size - 1) * fc1_out * batch_size
                 self.fc2 = torch.nn.Linear(fc1_out, fc2_out).to(device, dtype=dtype)
+                self.flop += (2 * fc1_out - 1) * fc2_out * batch_size
                 self.fc3 = torch.nn.Linear(fc2_out, fc3_out).to(device, dtype=dtype)
-                self.flop = 1000
+                self.flop += (2 * fc2_out - 1) * fc3_out * batch_size
 
             def forward(self, x):
                 block_output = torch.zeros(inputs.shape[0],self.view_size, device = device, dtype=dtype)
                 for i in range(n_conv_block):
                    batch = inputs[i * batch_size:(i + 1) * batch_size]
-
                    x = self.pool(torch.nn.functional.relu(self.conv1(batch)))
-                   self.flop += (
-                        conv1_kern ** 2
-                        * conv1_in_chan
-                        * conv1_out_chan
-                        * image_size ** 2
-                        * batch_size
-                   )
-                   print(self.flop)
-
                    x = self.pool(torch.nn.functional.relu(self.conv2(x)))
-                   self.flop += (
-                        conv2_kern ** 2
-                        * conv1_out_chan
-                        * conv2_out_chan
-                        * int(image_size / pool_size) ** 2
-                        * batch_size
-                   )
-                   print(self.flop)
-
                    x = x.view(-1,self.view_size)
                    block_output[i * batch_size:(i + 1) * batch_size] = x
 
                 x = torch.nn.functional.relu(self.fc1(block_output))
-                self.flop += (2 * self.view_size - 1) * fc1_out * batch_size
-
                 x = torch.nn.functional.relu(self.fc2(x))
-                self.flop += (2 * fc1_out - 1) * fc2_out * batch_size
-
                 x = self.fc3(x)
-                self.flop += (2 * fc2_out - 1) * fc3_out * batch_size
 
                 return x
 
@@ -159,7 +156,7 @@ if __name__ == "__main__":
         "fc1_out": 15545,
         "fc2_out": 15002,
         "fc3_out": 10,
-        "n_conv_block":1,
+        "n_conv_block":2,
     }
 
     if use_knl:
