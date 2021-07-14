@@ -22,7 +22,8 @@ Problem.add_dim("conv2_kern", (3, 8))
 Problem.add_dim("fc1_out", (64, 16384))
 Problem.add_dim("fc2_out", (32, 16384))
 Problem.add_dim("fc3_out", [10])
-Problem.add_dim("n_conv_block", (1,15))
+#Problem.add_dim("n_conv_block", (1,15))
+Problem.add_dim("n_conv_block", (3,15))
 
 if use_knl:
     # Problem.add_dim("omp_num_threads", (8, 64))
@@ -39,7 +40,7 @@ if use_knl:
         fc1_out=128,
         fc2_out=84,
         fc3_out=10,
-        n_conv_block = 1,
+        n_conv_block = 3,
         omp_num_threads=64,
     )
 else:
@@ -55,7 +56,7 @@ else:
         fc1_out=128,
         fc2_out=84,
         fc3_out=10,
-        n_conv_block = 1
+        n_conv_block = 3
     )
 
 if __name__ == "__main__":

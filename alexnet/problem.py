@@ -5,8 +5,9 @@ import sys
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from torch_wrapper import use_knl  # noqa
 
+#NOTE: I have intentially left the ranges for some of the hyper-parameters large in order to facilitate a large number of combinations. There will be configurations of these ranges that cause errors related to kernels being larger than images, but I am choosing to ignore those cases for now because limiting the ranges would greatly reduce the valid combinations of hyper-parameters. Feel free to change ranges based on your needs.
 Problem = HpProblem()
-Problem.add_dim("batch_size", (1, 64))
+Problem.add_dim("batch_size", (1, 128))
 Problem.add_dim("image_size", [224])
 Problem.add_dim("conv1_in_chan", [3])
 Problem.add_dim("conv1_out_chan", (50, 150))
@@ -26,28 +27,6 @@ Problem.add_dim("adaptive_pool_dim", (2, 8))
 Problem.add_dim("fc1_out", (64, 16384))
 Problem.add_dim("fc2_out", (32, 16384))
 Problem.add_dim("fc3_out", [1000])
-"""
-Problem.add_dim("batch_size", (1, 64))
-Problem.add_dim("image_size", [224])
-Problem.add_dim("conv1_in_chan", [3])
-Problem.add_dim("conv1_out_chan", (50, 150))
-Problem.add_dim("conv1_kern", (3, 8))
-Problem.add_dim("pool_size_1", (2, 11))
-Problem.add_dim("pool_size_2", (2, 11))
-Problem.add_dim("pool_size_5", (2, 11))
-Problem.add_dim("conv2_out_chan", (200, 350))
-Problem.add_dim("conv2_kern", (3, 8))
-Problem.add_dim("conv3_out_chan", (300, 450))
-Problem.add_dim("conv3_kern", (3, 8))
-Problem.add_dim("conv4_out_chan", (300, 450))
-Problem.add_dim("conv4_kern", (3, 8))
-Problem.add_dim("conv5_out_chan", (200, 350))
-Problem.add_dim("conv5_kern", (3, 8))
-Problem.add_dim("adaptive_pool_dim", (3, 8))
-Problem.add_dim("fc1_out", (64, 16384))
-Problem.add_dim("fc2_out", (32, 16384))
-Problem.add_dim("fc3_out", [1000])
-"""
 
 if use_knl:
     # Problem.add_dim("omp_num_threads", (8, 64))
