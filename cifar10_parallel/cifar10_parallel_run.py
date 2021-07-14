@@ -54,9 +54,7 @@ def run(point):
                     * image_size ** 2
                     * batch_size
                 )
-                self.pool = torch.nn.MaxPool2d(pool_size, pool_size).to(
-                    device, dtype=dtype
-                )
+                self.pool = torch.nn.MaxPool2d(pool_size, pool_size).to(device, dtype = dtype)
 
                 self.conv1_size = image_size-conv1_kern + 1 
                 self.maxpool1_size = int((self.conv1_size - pool_size)/pool_size + 1)
@@ -90,13 +88,38 @@ def run(point):
                 self.flop += (2 * fc2_out - 1) * fc3_out * batch_size
 
             def forward(self, x):
-                block_output = torch.zeros(inputs.shape[0],self.view_size, device = device, dtype=dtype)
+                block_output = torch.zeros(inputs.shape[0] * n_conv_block ,self.view_size, device = device, dtype=dtype)
+
                 for i in range(n_conv_block):
-                   batch = inputs[i * batch_size:(i + 1) * batch_size]
+                   #Will need to use this sort of strategy when we are using real datasets, not one dummy batch:
+                   #batch = inputs[i * batch_size:(i + 1) * batch_size]
+                   batch = inputs
+
                    x = self.pool(torch.nn.functional.relu(self.conv1(batch)))
                    x = self.pool(torch.nn.functional.relu(self.conv2(x)))
                    x = x.view(-1,self.view_size)
                    block_output[i * batch_size:(i + 1) * batch_size] = x
+
+                """
+
+                #batch = inputs[0 * batch_size:(0 + 1) * batch_size]
+                batch = inputs
+                print(batch.shape)
+                x = self.pool(torch.nn.functional.relu(self.conv1(batch)))
+                x = self.pool(torch.nn.functional.relu(self.conv2(x)))
+                x = x.view(-1,self.view_size)
+                block_output[0 * batch_size:(0 + 1) * batch_size] = x
+                print("FIRST ROUND DONE")
+
+                #batch = inputs[1 * batch_size:(1 + 1) * batch_size]
+                print(batch.shape)
+                x = self.pool(torch.nn.functional.relu(self.conv1(batch)))
+                x = self.pool(torch.nn.functional.relu(self.conv2(x)))
+                x = x.view(-1,self.view_size)
+                print(x.shape)
+                print("SECOND ROUND")
+                block_output[1 * batch_size:(1 + 1) * batch_size] = x
+                """
 
                 x = torch.nn.functional.relu(self.fc1(block_output))
                 x = torch.nn.functional.relu(self.fc2(x))
@@ -156,7 +179,7 @@ if __name__ == "__main__":
         "fc1_out": 15545,
         "fc2_out": 15002,
         "fc3_out": 10,
-        "n_conv_block":2,
+        "n_conv_block":3,
     }
 
     if use_knl:
