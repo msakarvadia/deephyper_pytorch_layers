@@ -6,8 +6,8 @@ Use DeepHyper to find the max FLOPS for various PyTorch Layers.
 - [ ] Benchmark DeepHyper+Balsam throughput on various platforms.
 Taylor reports low utilization on Theta.
 - [ ] Compute and/or measure memory usage on GPU and KNL
-- [ ] Extend pairplot from DeepHyper's HPS analytics notebook to include
-- [ ] Try different `kappa` values with Random Forest surrogate model
+- [X] Extend pairplot from DeepHyper's HPS analytics notebook to include calculation of equal width objective bins (thirds, not equal frequency terciles)
+- [X] Try different `kappa` values with the Random Forest surrogate model
 
 
 ### Bugs and run failures
