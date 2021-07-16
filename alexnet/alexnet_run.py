@@ -61,7 +61,6 @@ def run(point):
                 fc3_out
             ):
                 super(AlexNet, self).__init__()
-                #TODO replace all hyper parameters with variable
                 self.flop = 0
                 self.features = nn.Sequential(
                     #1st conv
@@ -91,7 +90,6 @@ def run(point):
                 
                 #FLOPS claculations for convolutional layers:
                 #1st conv2d
-                #TODO fix the image_size for each layer, and account for size change after pooling layers!!
                 layer_input_size = image_size
                 print(layer_input_size)
 
@@ -247,7 +245,7 @@ def run(point):
 
 if __name__ == "__main__":
     point = {
-        "batch_size": 64,
+        "batch_size": 128,
         "image_size": 224,
         "conv1_in_chan": 3,
         "conv1_out_chan": 96,

@@ -5,7 +5,7 @@ import sys
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from torch_wrapper import use_knl  # noqa
 
-#NOTE: I have intentially left the ranges for some of the hyper-parameters large in order to facilitate a large number of combinations. There will be configurations of these ranges that cause errors related to kernels being larger than images, but I am choosing to ignore those cases for now because limiting the ranges would greatly reduce the valid combinations of hyper-parameters. Feel free to change ranges based on your needs.
+#NOTE(MS): I have intentially left the ranges for some of the hyper-parameters large in order to facilitate a large number of combinations. There will be configurations of these ranges that cause errors related to kernels being larger than images, but I am choosing to ignore those cases for now because limiting the ranges would greatly reduce the valid combinations of hyper-parameters. Feel free to change ranges based on your needs.
 Problem = HpProblem()
 Problem.add_dim("batch_size", (1, 128))
 Problem.add_dim("image_size", [224])
