@@ -13,14 +13,12 @@ def get_gpu_memory_map():
         Values are memory usage as integers in MB.
     """
     result = subprocess.check_output(
-        [
-            'nvidia-smi', '--query-gpu=memory.used',
-            '--format=csv,nounits,noheader'
-        ])
+        ["nvidia-smi", "--query-gpu=memory.used", "--format=csv,nounits,noheader"]
+    )
     # Python 3 compatibility:
     # https://stackoverflow.com/questions/49595663/find-a-gpu-with-enough-memory
-    result = result.decode('utf-8')
-    gpu_memory = [int(x) for x in result.strip().split('\n')]
+    result = result.decode("utf-8")
+    gpu_memory = [int(x) for x in result.strip().split("\n")]
     gpu_memory_map = dict(zip(range(len(gpu_memory)), gpu_memory))
 
     return gpu_memory_map
