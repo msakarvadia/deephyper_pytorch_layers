@@ -1,6 +1,7 @@
 import time
-import os
-import sys
+
+# import os
+# import sys
 
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from torch_wrapper import load_cuda_vs_knl, benchmark_forward, use_knl  # noqa
@@ -56,9 +57,9 @@ def run(point):
                 self.pool = torch.nn.MaxPool2d(pool_size, pool_size).to(
                     device, dtype=dtype
                 )
-                self.conv1_size = image_size-conv1_kern + 1 
-                self.maxpool1_size = int((self.conv1_size - pool_size)/pool_size + 1)
-                
+                self.conv1_size = image_size - conv1_kern + 1
+                self.maxpool1_size = int((self.conv1_size - pool_size) / pool_size + 1)
+
                 self.flop += image_size ** 2 * conv1_out_chan * batch_size
                 self.conv2 = torch.nn.Conv2d(
                     conv1_out_chan, conv2_out_chan, conv2_kern
@@ -72,16 +73,15 @@ def run(point):
                 )
                 print(self.flop)
                 self.conv2_size = self.maxpool1_size - conv2_kern + 1
-                self.maxpool2_size = int((self.conv2_size - pool_size)/pool_size + 1 )
-                self.view_size = conv2_out_chan * self.maxpool2_size * self.maxpool2_size
+                self.maxpool2_size = int((self.conv2_size - pool_size) / pool_size + 1)
+                self.view_size = (
+                    conv2_out_chan * self.maxpool2_size * self.maxpool2_size
+                )
 
-                                    
-
-                self.fc1 = torch.nn.Linear(
-                    self.view_size, fc1_out
-                ).to(device, dtype=dtype)
+                self.fc1 = torch.nn.Linear(self.view_size, fc1_out).to(
+                    device, dtype=dtype
+                )
                 self.flop += (2 * self.view_size - 1) * fc1_out * batch_size
-
 
                 self.fc2 = torch.nn.Linear(fc1_out, fc2_out).to(device, dtype=dtype)
                 self.flop += (2 * fc1_out - 1) * fc2_out * batch_size

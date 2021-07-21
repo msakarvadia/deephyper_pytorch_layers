@@ -1,6 +1,7 @@
 from deephyper.benchmark import HpProblem
-import os
-import sys
+
+# import os
+# import sys
 
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from torch_wrapper import use_knl  # noqa
@@ -12,7 +13,7 @@ Problem.add_dim("image_size", [32])
 Problem.add_dim("conv1_in_chan", [3])
 Problem.add_dim("conv1_out_chan", (3, 64))
 Problem.add_dim("conv1_kern", (3, 8))
-#Problem.add_dim("pool_size", [2])
+# Problem.add_dim("pool_size", [2])
 hp = Problem.add_dim("pool_size", [2])
 print(hp)
 Problem.add_dim("conv2_out_chan", (3, 64))
@@ -22,8 +23,8 @@ Problem.add_dim("conv2_kern", (3, 8))
 Problem.add_dim("fc1_out", (64, 16384))
 Problem.add_dim("fc2_out", (32, 16384))
 Problem.add_dim("fc3_out", [10])
-#Problem.add_dim("n_conv_block", (1,15))
-Problem.add_dim("n_conv_block", (3,15))
+# Problem.add_dim("n_conv_block", (1,15))
+Problem.add_dim("n_conv_block", (3, 15))
 
 if use_knl:
     # Problem.add_dim("omp_num_threads", (8, 64))
@@ -40,7 +41,7 @@ if use_knl:
         fc1_out=128,
         fc2_out=84,
         fc3_out=10,
-        n_conv_block = 3,
+        n_conv_block=3,
         omp_num_threads=64,
     )
 else:
@@ -56,7 +57,7 @@ else:
         fc1_out=128,
         fc2_out=84,
         fc3_out=10,
-        n_conv_block = 3
+        n_conv_block=3,
     )
 
 if __name__ == "__main__":

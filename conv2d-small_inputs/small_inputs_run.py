@@ -1,7 +1,8 @@
 import time
 import logging
-import os
-import sys
+
+# import os
+# import sys
 
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from torch_wrapper import load_cuda_vs_knl, benchmark_forward, use_knl  # noqa
@@ -30,8 +31,12 @@ def run(point):
             device=device,
         ).view((batch_size, in_channels, image_size, image_size))
 
-        layer = torch.nn.Conv2d(in_channels, out_channels, kernel_size, stride=1,
-                                #padding="same"
+        layer = torch.nn.Conv2d(
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride=1,
+            # padding="same"
         ).to(device, dtype=dtype)
 
         ave_time = benchmark_forward(layer, inputs)
@@ -54,7 +59,7 @@ def run(point):
         print(outputs.shape)
 
         print("flop = ", total_flop, "ave_time = ", ave_time)
-        ave_flops = total_flop / ave_time 
+        ave_flops = total_flop / ave_time
         runtime = time.time() - start
         print("runtime=", runtime, "ave_flops=", ave_flops)
 

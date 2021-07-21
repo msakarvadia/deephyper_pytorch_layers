@@ -1,6 +1,7 @@
 from deephyper.benchmark import HpProblem
-import os
-import sys
+
+# import os
+# import sys
 
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from torch_wrapper import use_knl  # noqa
@@ -17,13 +18,22 @@ Problem.add_dim("bias", [0, 1])
 if use_knl:
     Problem.add_dim("omp_num_threads", (8, 64))
     Problem.add_starting_point(
-        batch_size=128, seq_length=512,
-        in_features=1024, hidden_units=512, num_layers=1, bias=0, omp_num_threads=64
+        batch_size=128,
+        seq_length=512,
+        in_features=1024,
+        hidden_units=512,
+        num_layers=1,
+        bias=0,
+        omp_num_threads=64,
     )
 else:
     Problem.add_starting_point(
-        batch_size=128, seq_length=512,
-        in_features=1024, hidden_units=512, num_layers=1, bias=0
+        batch_size=128,
+        seq_length=512,
+        in_features=1024,
+        hidden_units=512,
+        num_layers=1,
+        bias=0,
     )
 
 
