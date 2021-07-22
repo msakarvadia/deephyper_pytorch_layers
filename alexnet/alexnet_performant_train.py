@@ -15,12 +15,12 @@ transform = transforms.Compose([
 #Downloading training data
 train_data = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
 
-trainloader = torch.utils.data.DataLoader(train_data, batch_size=64, shuffle=True, num_workers=2)
+trainloader = torch.utils.data.DataLoader(train_data, batch_size=120, shuffle=True, num_workers=2)
 
 #Downloading test data
 test_data = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
 
-testloader = torch.utils.data.DataLoader(test_data, batch_size=64, shuffle=False, num_workers=2)
+testloader = torch.utils.data.DataLoader(test_data, batch_size=120, shuffle=False, num_workers=2)
 
 #Class labels
 
@@ -45,35 +45,36 @@ imshow(torchvision.utils.make_grid(images))
 # print labels
 print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
 
+#TODO - Implement batching
 #Now using the AlexNet
 class AlexNet(nn.Module):
 
     def __init__(self, num_classes: int = 10) -> None:
         super(AlexNet, self).__init__()
         self.features = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=11, stride=4, padding=2),
+            nn.Conv2d(3, 128, kernel_size=10, stride=4, padding=2),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=3, stride=2),
-            nn.Conv2d(64, 192, kernel_size=5, padding=2),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Conv2d(128, 261, kernel_size=8, padding=2),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=3, stride=2),
-            nn.Conv2d(192, 384, kernel_size=3, padding=1),
+            nn.MaxPool2d(kernel_size=4, stride=2),
+            nn.Conv2d(261, 444, kernel_size=8, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(384, 256, kernel_size=3, padding=1),
+            nn.Conv2d(444, 427, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            nn.Conv2d(427, 322, kernel_size=5, padding=1),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2),
         )
-        self.avgpool = nn.AdaptiveAvgPool2d((6, 6))
+        self.avgpool = nn.AdaptiveAvgPool2d((2, 2))
         self.classifier = nn.Sequential(
             nn.Dropout(),
-            nn.Linear(256 * 6 * 6, 4096),
+            nn.Linear(322 * 2 * 2, 663),
             nn.ReLU(inplace=True),
             nn.Dropout(),
-            nn.Linear(4096, 1024),
+            nn.Linear(663, 3582),
             nn.ReLU(inplace=True),
-            nn.Linear(1024, num_classes),
+            nn.Linear(3582, num_classes),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

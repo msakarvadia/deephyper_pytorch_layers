@@ -263,8 +263,8 @@ if __name__ == "__main__":
         "conv5_kern": 3,
         "adaptive_pool_dim": 6,
         "fc1_out": 4096,
-        "fc2_out": 4096,
-        "fc3_out": 1000,
+        "fc2_out": 1024,
+        "fc3_out": 10,
     }
 
     if use_knl:

@@ -32,9 +32,9 @@ Problem.add_dim("conv4_kern", (2, 8))
 Problem.add_dim("conv5_out_chan", (200, 350))
 Problem.add_dim("conv5_kern", (2, 8))
 Problem.add_dim("adaptive_pool_dim", (2, 8))
-Problem.add_dim("fc1_out", (64, 16384))
-Problem.add_dim("fc2_out", (32, 16384))
-Problem.add_dim("fc3_out", [1000])
+Problem.add_dim("fc1_out", (500, 6000))
+Problem.add_dim("fc2_out", (500, 6000))
+Problem.add_dim("fc3_out", [10])
 
 if use_knl:
     # Problem.add_dim("omp_num_threads", (8, 64))
@@ -58,8 +58,8 @@ if use_knl:
         conv5_kern=3,
         adaptive_pool_dim=5,
         fc1_out=4096,
-        fc2_out=4096,
-        fc3_out=1000,
+        fc2_out=1024,
+        fc3_out=10,
         omp_num_threads=64,
     )
 else:
@@ -82,8 +82,8 @@ else:
         conv5_kern=3,
         adaptive_pool_dim=5,
         fc1_out=4096,
-        fc2_out=4096,
-        fc3_out=1000,
+        fc2_out=1024,
+        fc3_out=10,
     )
 
 if __name__ == "__main__":
