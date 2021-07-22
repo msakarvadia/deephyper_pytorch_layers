@@ -1,10 +1,12 @@
 import time
-import os
-import sys
+
+# import os
+# import sys
 
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from torch_wrapper import load_cuda_vs_knl, benchmark_forward, use_knl, use_cuda  # noqa
 from utils import get_first_gpu_memory_usage
+
 # from ptflops import get_model_complexity_info
 # https://github.com/sovrasov/flops-counter.pytorch
 #

@@ -1,7 +1,8 @@
 import time
 import logging
-import os
-import sys
+
+# import os
+# import sys
 
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from torch_wrapper import load_cuda_vs_knl, benchmark_forward, use_knl  # noqa
@@ -20,25 +21,25 @@ def run(point):
         in_channels_1 = point["in_channels"]
         kernel_size_1 = point["kernel_size"]
 
-        batch_size_2 = point["batch_size"]+ 1
-        image_size_2 = point["image_size"]+ 1
-        in_channels_2 = point["in_channels"]+ 1
-        kernel_size_2 = point["kernel_size"]+ 1
+        batch_size_2 = point["batch_size"] + 1
+        image_size_2 = point["image_size"] + 1
+        in_channels_2 = point["in_channels"] + 1
+        kernel_size_2 = point["kernel_size"] + 1
 
-        batch_size_3 = point["batch_size"]+ 2
-        image_size_3 = point["image_size"]+ 2
-        in_channels_3 = point["in_channels"]+ 2
-        kernel_size_3 = point["kernel_size"]+ 2
+        batch_size_3 = point["batch_size"] + 2
+        image_size_3 = point["image_size"] + 2
+        in_channels_3 = point["in_channels"] + 2
+        kernel_size_3 = point["kernel_size"] + 2
 
-        batch_size_4 = point["batch_size"]+ 3 
-        image_size_4 = point["image_size"]+ 3
-        in_channels_4 = point["in_channels"]+ 3
-        kernel_size_4 = point["kernel_size"]+ 3
+        batch_size_4 = point["batch_size"] + 3
+        image_size_4 = point["image_size"] + 3
+        in_channels_4 = point["in_channels"] + 3
+        kernel_size_4 = point["kernel_size"] + 3
 
-        batch_size_5 = point["batch_size"]+ 4 
-        image_size_5 = point["image_size"]+ 4
-        in_channels_5 = point["in_channels"]+ 4
-        kernel_size_5 = point["kernel_size"]+ 4
+        batch_size_5 = point["batch_size"] + 4
+        image_size_5 = point["image_size"] + 4
+        in_channels_5 = point["in_channels"] + 4
+        kernel_size_5 = point["kernel_size"] + 4
 
         print(point)
 
@@ -76,13 +77,23 @@ def run(point):
             device=device,
         ).view((batch_size_5, in_channels_5, image_size_5, image_size_5))
 
-        layer_1 = torch.nn.Conv2d(in_channels_1, out_channels, kernel_size_2, stride=1).to(device, dtype=dtype)
-        layer_2 = torch.nn.Conv2d(in_channels_2, out_channels, kernel_size_2, stride=1).to(device, dtype=dtype)
-        layer_3 = torch.nn.Conv2d(in_channels_3, out_channels, kernel_size_3, stride=1).to(device, dtype=dtype)
-        layer_4 = torch.nn.Conv2d(in_channels_4, out_channels, kernel_size_4, stride=1).to(device, dtype=dtype)
-        layer_5 = torch.nn.Conv2d(in_channels_5, out_channels, kernel_size_5, stride=1).to(device, dtype=dtype)
+        layer_1 = torch.nn.Conv2d(
+            in_channels_1, out_channels, kernel_size_2, stride=1
+        ).to(device, dtype=dtype)
+        layer_2 = torch.nn.Conv2d(
+            in_channels_2, out_channels, kernel_size_2, stride=1
+        ).to(device, dtype=dtype)
+        layer_3 = torch.nn.Conv2d(
+            in_channels_3, out_channels, kernel_size_3, stride=1
+        ).to(device, dtype=dtype)
+        layer_4 = torch.nn.Conv2d(
+            in_channels_4, out_channels, kernel_size_4, stride=1
+        ).to(device, dtype=dtype)
+        layer_5 = torch.nn.Conv2d(
+            in_channels_5, out_channels, kernel_size_5, stride=1
+        ).to(device, dtype=dtype)
 
-        #TODO
+        # TODO
         ave_time_1 = benchmark_forward(layer_1, inputs_1)
         ave_time_2 = benchmark_forward(layer_2, inputs_2)
         ave_time_3 = benchmark_forward(layer_3, inputs_3)
@@ -102,7 +113,8 @@ def run(point):
             * out_channels
             * outputs_1.shape[-1]
             * outputs_1.shape[-2]
-            * batch_size_1)
+            * batch_size_1
+        )
 
         total_flop_2 = (
             kernel_size_2
@@ -111,7 +123,8 @@ def run(point):
             * out_channels
             * outputs_2.shape[-1]
             * outputs_2.shape[-2]
-            * batch_size_2)
+            * batch_size_2
+        )
 
         total_flop_3 = (
             kernel_size_3
@@ -120,7 +133,8 @@ def run(point):
             * out_channels
             * outputs_3.shape[-1]
             * outputs_3.shape[-2]
-            * batch_size_3)
+            * batch_size_3
+        )
 
         total_flop_4 = (
             kernel_size_4
@@ -129,7 +143,8 @@ def run(point):
             * out_channels
             * outputs_4.shape[-1]
             * outputs_4.shape[-2]
-            * batch_size_4)
+            * batch_size_4
+        )
 
         total_flop_5 = (
             kernel_size_5
@@ -138,7 +153,8 @@ def run(point):
             * out_channels
             * outputs_5.shape[-1]
             * outputs_5.shape[-2]
-            * batch_size_5)
+            * batch_size_5
+        )
 
         print("OUTPUT SHAPES: 1,2,3,4,5 (respectively)")
         print(outputs_1.shape)
@@ -147,7 +163,7 @@ def run(point):
         print(outputs_4.shape)
         print(outputs_5.shape)
 
-        #TODO
+        # TODO
         print("flop_1 = ", total_flop_1, "ave_time_1 = ", ave_time_1)
         ave_flops_1 = total_flop_1 / ave_time_1 * batch_size_1
         runtime_1 = time.time() - start
@@ -173,7 +189,7 @@ def run(point):
         runtime_5 = time.time() - start
         print("runtime_5=", runtime_5, "ave_flops_5=", ave_flops_5)
 
-        #TODO return tuple 
+        # TODO return tuple
         return ave_flops_1
 
     except Exception as e:

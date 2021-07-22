@@ -1,10 +1,12 @@
 import time
-import os
-import sys
+
+# import os
+# import sys
 
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from torch_wrapper import load_cuda_vs_knl, benchmark_forward, use_knl, use_cuda  # noqa
 from utils import get_first_gpu_memory_usage  # noqa
+
 # from ptflops import get_model_complexity_info
 
 
@@ -28,15 +30,19 @@ def run(point):
             init_mem = get_first_gpu_memory_usage()
 
         inputs = torch.arange(
-            seq_length * batch_size * in_features, dtype=dtype, device=device,
-            requires_grad=True
-        ).view(
-            (seq_length, batch_size, in_features)
-        )
+            seq_length * batch_size * in_features,
+            dtype=dtype,
+            device=device,
+            requires_grad=True,
+        ).view((seq_length, batch_size, in_features))
 
-        layer = torch.nn.GRU(in_features, hidden_units, num_layers,
-                             # out_features,
-                             bias=bias).to(device, dtype=dtype)
+        layer = torch.nn.GRU(
+            in_features,
+            hidden_units,
+            num_layers,
+            # out_features,
+            bias=bias,
+        ).to(device, dtype=dtype)
 
         ave_time = benchmark_forward(layer, inputs, init_mem=init_mem)
 
@@ -47,7 +53,13 @@ def run(point):
         # [x, h]*A, for A=W_z, W_r, W all (m+n) x n, vector is 1x(m+n)
         # ---> 3*(m+n)*n MACs
         # ---> 3*(2*(m+n) - 1)*n FLOPs
-        total_flop = 3 * seq_length * batch_size * (2 * (in_features + hidden_units) - 1)*hidden_units
+        total_flop = (
+            3
+            * seq_length
+            * batch_size
+            * (2 * (in_features + hidden_units) - 1)
+            * hidden_units
+        )
         print("flop = ", total_flop, "ave_time = ", ave_time)
         ave_flops = total_flop / ave_time
 
