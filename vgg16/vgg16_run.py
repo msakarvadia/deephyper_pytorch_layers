@@ -36,6 +36,7 @@ def vgg_fc_layer(size_in, size_out):
 def run(point):
     start = time.time()
     try:
+        num_classes = point["num_classes"]
         batch_size = point["batch_size"]
         image_size = point["image_size"]
         conv1_in_chan = point["conv1_in_chan"]
@@ -43,6 +44,8 @@ def run(point):
         conv1_kern = point["conv1_kern"]
         pool_size_1 = point["pool_size_1"]
         pool_size_2 = point["pool_size_2"]
+        pool_size_3 = point["pool_size_3"]
+        pool_size_4 = point["pool_size_4"]
         pool_size_5 = point["pool_size_5"]
         conv2_out_chan = point["conv2_out_chan"]
         conv2_kern = point["conv2_kern"]
@@ -64,15 +67,37 @@ def run(point):
 
             def __init__(
                 self,
-                features: nn.Module,
-                num_classes: int = 1000,
-                init_weights: bool = False
+                features,
+                num_classes,
+                batch_size,
+                image_size,
+                conv1_in_chan,
+                conv1_out_chan,
+                conv1_kern,
+                pool_size_1,
+                pool_size_2,
+                pool_size_3,
+                pool_size_4,
+                pool_size_5,
+                conv2_out_chan,
+                conv2_kern,
+                conv3_out_chan, 
+                conv3_kern,
+                conv4_out_chan,
+                conv4_kern, 
+                conv5_out_chan,
+                conv5_kern,
+                adaptive_pool_dim,
+                fc1_out,
+                fc2_out,
+                fc3_out
             ) -> None:
                 super(VGG, self).__init__()
+                self.flop = 0
                 self.features = features
-                self.avgpool = nn.AdaptiveAvgPool2d((7, 7))
+                self.avgpool = nn.AdaptiveAvgPool2d((adaptive_pool_dim, adaptive_pool_dim))
                 self.classifier = nn.Sequential(
-                    nn.Linear(512 * 7 * 7, 4096),
+                    nn.Linear(512 * adaptive_pool_dim * adaptive_pool_dim, 4096),
                     nn.ReLU(True),
                     nn.Dropout(),
                     nn.Linear(4096, 4096),
@@ -80,8 +105,6 @@ def run(point):
                     nn.Dropout(),
                     nn.Linear(4096, num_classes),
                 )
-                if init_weights:
-                    self._initialize_weights()
 
             def forward(self, x: torch.Tensor) -> torch.Tensor:
                 x = self.features(x)
@@ -110,7 +133,11 @@ def run(point):
         cfgs: Dict[str, List[Union[str, int]]] = {
             'A': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
             'B': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
-            'D': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
+            'VGG16': [conv1_out_chan, conv1_out_chan, 'M', 
+                      conv2_out_chan, conv2_out_chan, 'M',
+                      conv3_out_chan, conv3_out_chan, conv3_out_chan, 'M',
+                      conv4_out_chan, conv4_out_chan, conv4_out_chan, 'M',
+                      conv5_out_chan, conv5_out_chan, conv5_out_chan, 'M'],
             'E': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
         }
 
@@ -121,7 +148,31 @@ def run(point):
         #create and move model to GPU
 
         #"verion D" is VGG-16
-        net = VGG(make_layers(cfgs['D'], batch_norm=True))        
+        net = VGG(make_layers(cfgs['VGG16'], batch_norm=True),
+                num_classes,
+                batch_size,
+                image_size,
+                conv1_in_chan,
+                conv1_out_chan,
+                conv1_kern,
+                pool_size_1,
+                pool_size_2,
+                pool_size_3,
+                pool_size_4,
+                pool_size_5,
+                conv2_out_chan,
+                conv2_kern,
+                conv3_out_chan, 
+                conv3_kern,
+                conv4_out_chan,
+                conv4_kern, 
+                conv5_out_chan,
+                conv5_kern,
+                adaptive_pool_dim,
+                fc1_out,
+                fc2_out,
+                fc3_out
+                ).to(device, dtype=dtype)         
 
         total_flop = net.flop
 
@@ -146,23 +197,26 @@ def run(point):
 
 if __name__ == "__main__":
     point = {
+        "num_classes": 100,
         "batch_size": 128,
         "image_size": 224,
         "conv1_in_chan": 3,
-        "conv1_out_chan": 96,
-        "conv1_kern": 11,
-        "pool_size_1": 3,
-        "pool_size_2": 3,
-        "pool_size_5": 3,
-        "conv2_out_chan": 256,
+        "conv1_out_chan": 64,
+        "conv1_kern": 3,
+        "pool_size_1": 2,
+        "pool_size_2": 2,
+        "pool_size_3": 2,
+        "pool_size_4": 2,
+        "pool_size_5": 2,
+        "conv2_out_chan": 128,
         "conv2_kern": 3,
-        "conv3_out_chan": 384,
+        "conv3_out_chan": 256,
         "conv3_kern": 3,
-        "conv4_out_chan": 384,
+        "conv4_out_chan": 512,
         "conv4_kern": 3,
-        "conv5_out_chan": 256,
+        "conv5_out_chan": 512,
         "conv5_kern": 3,
-        "adaptive_pool_dim": 6,
+        "adaptive_pool_dim": 7,
         "fc1_out": 4096,
         "fc2_out": 4096,
         "fc3_out": 1000,
