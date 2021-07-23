@@ -296,7 +296,7 @@ if __name__ == "__main__":
         "adaptive_pool_dim": 6,
         "fc1_out": 4096,
         "fc2_out": 1024,
-        "fc3_out": 10,
+        "fc3_out": 131,
     }
 
     if use_knl:
