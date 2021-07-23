@@ -8,31 +8,6 @@ from typing import Union, List, Dict, Any, cast
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from torch_wrapper import load_cuda_vs_knl, benchmark_forward, use_knl  # noqa
 
-#Portions of this VGG16 implementation come from:
-#https://github.com/msyim/VGG16/blob/master/VGG16.py
-
-def conv_layer(chann_in, chann_out, k_size, p_size):
-    layer = nn.Sequential(
-        nn.Conv2d(chann_in, chann_out, kernel_size=k_size, padding=p_size),
-        nn.BatchNorm2d(chann_out),
-        nn.ReLU()
-    )
-    return layer
-
-def vgg_conv_block(in_list, out_list, k_list, p_list, pooling_k, pooling_s):
-
-    layers = [ conv_layer(in_list[i], out_list[i], k_list[i], p_list[i]) for i in range(len(in_list)) ]
-    layers += [ nn.MaxPool2d(kernel_size = pooling_k, stride = pooling_s)]
-    return nn.Sequential(*layers)
-
-def vgg_fc_layer(size_in, size_out):
-    layer = nn.Sequential(
-        nn.Linear(size_in, size_out),
-        nn.BatchNorm1d(size_out),
-        nn.ReLU()
-    )
-    return layer
-
 def run(point):
     start = time.time()
     try:
@@ -77,6 +52,125 @@ def run(point):
                 super(VGG, self).__init__()
                 self.flop = 0
                 self.features = features
+
+                #FLOPS calculations for convolutional layers:
+                layer_input_size = image_size
+                #1st block of convolutional layers
+                for i in range(2):
+                    if i == 1:
+                        self.flop += (
+                        conv_kern ** 2
+                        * conv1_in_chan
+                        * conv1_out_chan
+                        * layer_input_size ** 2
+                        * batch_size
+                        )
+                    else:
+                        self.flop += (
+                        conv_kern ** 2
+                        * conv1_out_chan
+                        * conv1_out_chan
+                        * layer_input_size ** 2
+                        * batch_size
+                        )
+    
+                    layer_input_size = int(((layer_input_size - conv_kern + 2 * 1) / 1) + 1) 
+    
+                #Reshape for max pool layer:
+                layer_input_size = int(((layer_input_size - pool_size) / 2) + 1)
+
+                #2nd block of convolutional layers
+                for i in range(2):
+                    if i == 1:
+                        self.flop += (
+                        conv_kern ** 2
+                        * conv1_out_chan
+                        * conv2_out_chan
+                        * layer_input_size ** 2
+                        * batch_size
+                        )
+                    else:
+                        self.flop += (
+                        conv_kern ** 2
+                        * conv2_out_chan
+                        * conv2_out_chan
+                        * layer_input_size ** 2
+                        * batch_size
+                        )
+                    layer_input_size = int(((layer_input_size - conv_kern + 2 * 1) / 1) + 1) 
+    
+                #Reshape for max pool layer:
+                layer_input_size = int(((layer_input_size - pool_size) / 2) + 1)
+
+                #3rd block of convolutional layers
+                for i in range(3):
+                    if i == 1:
+                        self.flop += (
+                        conv_kern ** 2
+                        * conv2_out_chan
+                        * conv3_out_chan
+                        * layer_input_size ** 2
+                        * batch_size
+                        )
+                    else:
+                        self.flop += (
+                        conv_kern ** 2
+                        * conv3_out_chan
+                        * conv3_out_chan
+                        * layer_input_size ** 2
+                        * batch_size
+                        )
+                    layer_input_size = int(((layer_input_size - conv_kern + 2 * 1) / 1) + 1) 
+    
+                #Reshape for max pool layer:
+                layer_input_size = int(((layer_input_size - pool_size) / 2) + 1)
+
+                #4th block of convolutional layers
+                for i in range(3):
+                    if i == 1:
+                        self.flop += (
+                        conv_kern ** 2
+                        * conv3_out_chan
+                        * conv4_out_chan
+                        * layer_input_size ** 2
+                        * batch_size
+                        )
+                    else:
+                        self.flop += (
+                        conv_kern ** 2
+                        * conv4_out_chan
+                        * conv4_out_chan
+                        * layer_input_size ** 2
+                        * batch_size
+                        )
+                    layer_input_size = int(((layer_input_size - conv_kern + 2 * 1) / 1) + 1) 
+    
+                #Reshape for max pool layer:
+                layer_input_size = int(((layer_input_size - pool_size) / 2) + 1)
+
+                #5th block of convolutional layers
+                for i in range(3):
+                    if i == 1:
+                        self.flop += (
+                        conv_kern ** 2
+                        * conv4_out_chan
+                        * conv5_out_chan
+                        * layer_input_size ** 2
+                        * batch_size
+                        )
+                    else:
+                        self.flop += (
+                        conv_kern ** 2
+                        * conv5_out_chan
+                        * conv5_out_chan
+                        * layer_input_size ** 2
+                        * batch_size
+                        )
+                    layer_input_size = int(((layer_input_size - conv_kern + 2 * 1) / 1) + 1) 
+                
+                #Reshape for max pool layer:
+                layer_input_size = int(((layer_input_size - pool_size) / 2) + 1)
+
                 self.avgpool = nn.AdaptiveAvgPool2d((adaptive_pool_dim, adaptive_pool_dim))
                 self.classifier = nn.Sequential(
                     nn.Linear(conv5_out_chan * adaptive_pool_dim * adaptive_pool_dim, fc1_out),
@@ -88,6 +182,20 @@ def run(point):
                     nn.Linear(fc2_out, num_classes),
                 )
 
+                # FLOPS calculatios for linear layers
+                # 1st linear layer
+                self.flop += (
+                    (2 * (conv5_out_chan * adaptive_pool_dim ** 2) - 1)
+                    * fc1_out
+                    * batch_size
+                )
+
+                # 2nd linear layer
+                self.flop += (2 * fc1_out - 1) * fc2_out * batch_size
+
+                # 3rd linear layer
+                self.flop += (2 * fc2_out - 1) * num_classes * batch_size
+
             def forward(self, x: torch.Tensor) -> torch.Tensor:
                 x = self.features(x)
                 x = self.avgpool(x)
@@ -97,7 +205,7 @@ def run(point):
 
         def make_layers(cfg: List[Union[str, int]], batch_norm: bool = False) -> nn.Sequential:
             layers: List[nn.Module] = []
-            in_channels = 3
+            in_channels = conv1_in_chan 
             for v in cfg:
                 if v == 'M':
                     layers += [nn.MaxPool2d(kernel_size=pool_size, stride=2)]
@@ -113,14 +221,11 @@ def run(point):
             return nn.Sequential(*layers)
 
         cfgs: Dict[str, List[Union[str, int]]] = {
-            'A': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
-            'B': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
             'VGG16': [conv1_out_chan, conv1_out_chan, 'M', 
                       conv2_out_chan, conv2_out_chan, 'M',
                       conv3_out_chan, conv3_out_chan, conv3_out_chan, 'M',
                       conv4_out_chan, conv4_out_chan, conv4_out_chan, 'M',
                       conv5_out_chan, conv5_out_chan, conv5_out_chan, 'M'],
-            'E': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
         }
 
         inputs = torch.arange(
