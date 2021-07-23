@@ -41,24 +41,15 @@ def run(point):
         image_size = point["image_size"]
         conv1_in_chan = point["conv1_in_chan"]
         conv1_out_chan = point["conv1_out_chan"]
-        conv1_kern = point["conv1_kern"]
-        pool_size_1 = point["pool_size_1"]
-        pool_size_2 = point["pool_size_2"]
-        pool_size_3 = point["pool_size_3"]
-        pool_size_4 = point["pool_size_4"]
-        pool_size_5 = point["pool_size_5"]
+        conv_kern = point["conv_kern"]
+        pool_size = point["pool_size"]
         conv2_out_chan = point["conv2_out_chan"]
-        conv2_kern = point["conv2_kern"]
         conv3_out_chan = point["conv3_out_chan"]
-        conv3_kern = point["conv3_kern"]
         conv4_out_chan = point["conv4_out_chan"]
-        conv4_kern = point["conv4_kern"]
         conv5_out_chan = point["conv5_out_chan"]
-        conv5_kern = point["conv5_kern"]
         adaptive_pool_dim = point["adaptive_pool_dim"]
         fc1_out = point["fc1_out"]
         fc2_out = point["fc2_out"]
-        fc3_out = point["fc3_out"]
         print(point)
 
         device, dtype = load_cuda_vs_knl(point)
@@ -73,37 +64,28 @@ def run(point):
                 image_size,
                 conv1_in_chan,
                 conv1_out_chan,
-                conv1_kern,
-                pool_size_1,
-                pool_size_2,
-                pool_size_3,
-                pool_size_4,
-                pool_size_5,
                 conv2_out_chan,
-                conv2_kern,
                 conv3_out_chan, 
-                conv3_kern,
                 conv4_out_chan,
-                conv4_kern, 
                 conv5_out_chan,
-                conv5_kern,
+                conv_kern,
+                pool_size,
                 adaptive_pool_dim,
                 fc1_out,
                 fc2_out,
-                fc3_out
             ) -> None:
                 super(VGG, self).__init__()
                 self.flop = 0
                 self.features = features
                 self.avgpool = nn.AdaptiveAvgPool2d((adaptive_pool_dim, adaptive_pool_dim))
                 self.classifier = nn.Sequential(
-                    nn.Linear(512 * adaptive_pool_dim * adaptive_pool_dim, 4096),
+                    nn.Linear(conv5_out_chan * adaptive_pool_dim * adaptive_pool_dim, fc1_out),
                     nn.ReLU(True),
                     nn.Dropout(),
-                    nn.Linear(4096, 4096),
+                    nn.Linear(fc1_out, fc2_out),
                     nn.ReLU(True),
                     nn.Dropout(),
-                    nn.Linear(4096, num_classes),
+                    nn.Linear(fc2_out, num_classes),
                 )
 
             def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -118,11 +100,11 @@ def run(point):
             in_channels = 3
             for v in cfg:
                 if v == 'M':
-                    layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+                    layers += [nn.MaxPool2d(kernel_size=pool_size, stride=2)]
                 else:
                     v = cast(int, v)
 
-                    conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
+                    conv2d = nn.Conv2d(in_channels, v, kernel_size=conv_kern, padding=1)
                     if batch_norm:
                         layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
                     else:
@@ -154,24 +136,15 @@ def run(point):
                 image_size,
                 conv1_in_chan,
                 conv1_out_chan,
-                conv1_kern,
-                pool_size_1,
-                pool_size_2,
-                pool_size_3,
-                pool_size_4,
-                pool_size_5,
                 conv2_out_chan,
-                conv2_kern,
                 conv3_out_chan, 
-                conv3_kern,
                 conv4_out_chan,
-                conv4_kern, 
                 conv5_out_chan,
-                conv5_kern,
+                conv_kern,
+                pool_size,
                 adaptive_pool_dim,
                 fc1_out,
                 fc2_out,
-                fc3_out
                 ).to(device, dtype=dtype)         
 
         total_flop = net.flop
@@ -202,24 +175,15 @@ if __name__ == "__main__":
         "image_size": 224,
         "conv1_in_chan": 3,
         "conv1_out_chan": 64,
-        "conv1_kern": 3,
-        "pool_size_1": 2,
-        "pool_size_2": 2,
-        "pool_size_3": 2,
-        "pool_size_4": 2,
-        "pool_size_5": 2,
         "conv2_out_chan": 128,
-        "conv2_kern": 3,
         "conv3_out_chan": 256,
-        "conv3_kern": 3,
         "conv4_out_chan": 512,
-        "conv4_kern": 3,
         "conv5_out_chan": 512,
-        "conv5_kern": 3,
+        "conv_kern": 3,
+        "pool_size": 2,
         "adaptive_pool_dim": 7,
         "fc1_out": 4096,
         "fc2_out": 4096,
-        "fc3_out": 1000,
     }
 
     if use_knl:
