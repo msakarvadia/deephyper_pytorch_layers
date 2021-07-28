@@ -16,14 +16,12 @@ transform = transforms.Compose([
 #Downloading training data
 train_data = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
 #train_data = torchvision.datasets.FashionMNIST(root='./data', train=True, download=True, transform=transform)
-train_data = torchvision.datasets.ImageFolder(root='/home/felker/resnet-ASP/fruits-360/Training', transform=transform)
 
 trainloader = torch.utils.data.DataLoader(train_data, batch_size=64, shuffle=True, num_workers=2)
 
 #Downloading test data
 test_data = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
 #test_data = torchvision.datasets.FashionMNIST(root='./data', train=False, download=True, transform=transform)
-test_data = torchvision.datasets.ImageFolder(root='/home/felker/resnet-ASP/fruits-360/Test', transform=transform)
 
 testloader = torch.utils.data.DataLoader(test_data, batch_size=64, shuffle=False, num_workers=2)
 
@@ -52,32 +50,32 @@ images, labels = dataiter.next()
 #Now using the AlexNet
 class AlexNet(nn.Module):
 
-    def __init__(self, num_classes: int = 131) -> None:
+    def __init__(self, num_classes: int = 10) -> None:
         super(AlexNet, self).__init__()
         self.features = nn.Sequential(
-            nn.Conv2d(3, 127, kernel_size=10, stride=4, padding=2),
+            nn.Conv2d(3, 64, kernel_size=11, stride=4, padding=2),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2),
-            nn.Conv2d(127, 274, kernel_size=8, padding=2),
+            nn.Conv2d(64, 192, kernel_size=5, padding=2),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(kernel_size=3, stride=2),
-            nn.Conv2d(274, 344, kernel_size=8, padding=1),
+            nn.Conv2d(192, 384, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(344, 356, kernel_size=7, padding=1),
+            nn.Conv2d(384, 256, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(356, 295, kernel_size=2, padding=1),
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.MaxPool2d(kernel_size=3, stride=2),
         )
-        self.avgpool = nn.AdaptiveAvgPool2d((4, 4))
+        self.avgpool = nn.AdaptiveAvgPool2d((6, 6))
         self.classifier = nn.Sequential(
             nn.Dropout(),
-            nn.Linear(295 * 4 * 4, 1250),
+            nn.Linear(256 * 6 * 6, 4096),
             nn.ReLU(inplace=True),
             nn.Dropout(),
-            nn.Linear(1250, 2363),
+            nn.Linear(4096, 1024),
             nn.ReLU(inplace=True),
-            nn.Linear(2363, num_classes),
+            nn.Linear(1024, num_classes),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:

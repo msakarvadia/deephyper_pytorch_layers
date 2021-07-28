@@ -5,9 +5,11 @@ from torch import nn
 import torch.optim as optim
 import time
 from torch.utils.data import Dataset, DataLoader
+from typing import Union, List, Dict, Any, cast
 
 
 transform = transforms.Compose([
+    transforms.Resize(256),
     transforms.CenterCrop(224),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
@@ -49,36 +51,29 @@ images, labels = dataiter.next()
 ## print labels
 #print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
 
-#Now using the AlexNet
-class AlexNet(nn.Module):
+#Now using VGG16
+class VGG(nn.Module):
 
-    def __init__(self, num_classes: int = 131) -> None:
-        super(AlexNet, self).__init__()
-        self.features = nn.Sequential(
-            nn.Conv2d(3, 127, kernel_size=10, stride=4, padding=2),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=3, stride=2),
-            nn.Conv2d(127, 274, kernel_size=8, padding=2),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=3, stride=2),
-            nn.Conv2d(274, 344, kernel_size=8, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(344, 356, kernel_size=7, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(356, 295, kernel_size=2, padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-        )
-        self.avgpool = nn.AdaptiveAvgPool2d((4, 4))
+    def __init__(
+        self,
+        features: nn.Module,
+        num_classes: int = 131,
+        init_weights: bool = True
+    ) -> None:
+        super(VGG, self).__init__()
+        self.features = features
+        self.avgpool = nn.AdaptiveAvgPool2d((7, 7))
         self.classifier = nn.Sequential(
+            nn.Linear(512 * 7 * 7, 4096),
+            nn.ReLU(True),
             nn.Dropout(),
-            nn.Linear(295 * 4 * 4, 1250),
-            nn.ReLU(inplace=True),
+            nn.Linear(4096, 4096),
+            nn.ReLU(True),
             nn.Dropout(),
-            nn.Linear(1250, 2363),
-            nn.ReLU(inplace=True),
-            nn.Linear(2363, num_classes),
+            nn.Linear(4096, num_classes),
         )
+        if init_weights:
+            self._initialize_weights()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.features(x)
@@ -87,10 +82,46 @@ class AlexNet(nn.Module):
         x = self.classifier(x)
         return x
 
-AlexNet_model = AlexNet()
+
+    def _initialize_weights(self) -> None:
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d):
+                nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+                if m.bias is not None:
+                    nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.BatchNorm2d):
+                nn.init.constant_(m.weight, 1)
+                nn.init.constant_(m.bias, 0)
+            elif isinstance(m, nn.Linear):
+                nn.init.normal_(m.weight, 0, 0.01)
+                nn.init.constant_(m.bias, 0)
+
+
+def make_layers(cfg: List[Union[str, int]], batch_norm: bool = False) -> nn.Sequential:
+    layers: List[nn.Module] = []
+    in_channels = 3
+    for v in cfg:
+        if v == 'M':
+            layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+        else:
+            v = cast(int, v)
+            conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
+            if batch_norm:
+                layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
+            else:
+                layers += [conv2d, nn.ReLU(inplace=True)]
+            in_channels = v
+    return nn.Sequential(*layers)
+
+
+cfgs: Dict[str, List[Union[str, int]]] = {
+    'VGG16': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
+}
+
+VGG16_model = VGG(make_layers(cfgs['VGG16'], batch_norm=True))
 
 #Model description
-AlexNet_model.eval()
+VGG16_model.eval()
 
 #Instantiating CUDA device
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -98,16 +129,16 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 #Verifying CUDA
 print(device)
 
-#Move the input and AlexNet_model to GPU for speed if available
-AlexNet_model.to(device)
+#Move the input and VGG16_model to GPU for speed if available
+VGG16_model.to(device)
 
 #Loss
 criterion = nn.CrossEntropyLoss()
 
 #Optimizer(SGD)
-optimizer = optim.SGD(AlexNet_model.parameters(), lr=0.001, momentum=0.9) #77% - for CIFAR10
-#optimizer = optim.Adam(AlexNet_model.parameters(), lr=0.001) #only predicted one class
-#optimizer = optim.SGD(AlexNet_model.parameters(), lr=0.002, momentum=0.9) #64
+optimizer = optim.SGD(VGG16_model.parameters(), lr=0.001, momentum=0.9) #77% - for CIFAR10
+#optimizer = optim.Adam(VGG16_model.parameters(), lr=0.001) #only predicted one class
+#optimizer = optim.SGD(VGG16_model.parameters(), lr=0.002, momentum=0.9) #64
 
 def accuracy():
     #Testing Accuracy
@@ -116,7 +147,7 @@ def accuracy():
     with torch.no_grad():
         for data in testloader:
             images, labels = data[0].to(device), data[1].to(device)
-            outputs = AlexNet_model(images)
+            outputs = VGG16_model(images)
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
@@ -132,7 +163,7 @@ def class_accuracy():
     with torch.no_grad():
         for data in testloader:
             images, labels = data[0].to(device), data[1].to(device)
-            outputs = AlexNet_model(images)
+            outputs = VGG16_model(images)
             _, predicted = torch.max(outputs, 1)
             c = (predicted == labels).squeeze()
             for i in range(4):
@@ -164,7 +195,7 @@ for epoch in range(15):  # loop over the dataset multiple times
         optimizer.zero_grad()
 
         # forward + backward + optimize
-        output = AlexNet_model(inputs)
+        output = VGG16_model(inputs)
         loss = criterion(output, labels)
         loss.backward()
         optimizer.step()
