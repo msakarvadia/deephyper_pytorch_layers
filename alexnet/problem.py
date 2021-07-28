@@ -35,7 +35,7 @@ Problem.add_dim("conv5_kern", (2, 8))
 Problem.add_dim("adaptive_pool_dim", (2, 8))
 Problem.add_dim("fc1_out", (500, 6000))
 Problem.add_dim("fc2_out", (500, 6000))
-Problem.add_dim("fc3_out", [131])
+Problem.add_dim("fc3_out", [100])
 
 if use_knl:
     # Problem.add_dim("omp_num_threads", (8, 64))
@@ -60,7 +60,7 @@ if use_knl:
         adaptive_pool_dim=5,
         fc1_out=4096,
         fc2_out=1024,
-        fc3_out=131,
+        fc3_out=100,
         omp_num_threads=64,
     )
 else:
@@ -84,7 +84,7 @@ else:
         adaptive_pool_dim=5,
         fc1_out=4096,
         fc2_out=1024,
-        fc3_out=131,
+        fc3_out=100,
     )
 
 if __name__ == "__main__":
