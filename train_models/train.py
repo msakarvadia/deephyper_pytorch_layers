@@ -26,8 +26,35 @@ def main(args):
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
 
     #load dataset
-    #TODO add arge parse option for different datasets
 
+    transform = transforms.Compose([
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+    ])
+
+    if args.data == "cifar100":
+        train_data = torchvision.datasets.CIFAR100(root='./data', train=True, download=True, transform=transform)
+        trainloader = torch.utils.data.DataLoader(train_data, batch_size=64, shuffle=True, num_workers=2)
+
+        test_data = torchvision.datasets.CIFAR100(root='./data', train=False, download=True, transform=transform)
+        testloader = torch.utils.data.DataLoader(test_data, batch_size=64, shuffle=False, num_workers=2)
+        print("loaded cifar100")
+
+    if args.data == "fruits":
+        train_data = torchvision.datasets.ImageFolder(root='/home/felker/resnet-ASP/fruits-360/Training', transform=transform)
+        trainloader = torch.utils.data.DataLoader(train_data, batch_size=64, shuffle=True, num_workers=2)
+
+        test_data = torchvision.datasets.ImageFolder(root='/home/felker/resnet-ASP/fruits-360/Test', transform=transform)
+        testloader = torch.utils.data.DataLoader(test_data, batch_size=64, shuffle=False, num_workers=2)
+        print("loaded fruits")
+
+    if args.data == "imagenet":
+        train_data = torchvision.datasets.ImageFolder(root='/home/felker/resnet-ASP/imagenet/train', transform=transform)
+        trainloader = torch.utils.data.DataLoader(train_data, batch_size=64, shuffle=True, num_workers=2)
+
+        test_data = torchvision.datasets.ImageFolder(root='/home/felker/resnet-ASP/imagenet/val', transform=transform)
+        testloader = torch.utils.data.DataLoader(test_data, batch_size=64, shuffle=False, num_workers=2)
+        print("loaded imagenet")
 
     #train model and check accuracy on validation data after each epoch
     #TODO GRANULAR TIMING BREAK DOWN
@@ -43,6 +70,7 @@ if __name__ == "__main__":
     parser.add_argument('--load_model_cp', type=str, default="model.pt", help='Full path to model *.pt checkpoint file')
     parser.add_argument('--save_model_cp', type=str, default="model.pt", help='Full path to desired location for model *.pt checkpoint file')
     parser.add_argument('--network_class_file', type=str, default="model.py", help='Name of file which defines model class - class must be named: net() (file needs to be stored somewhere in this git repo)')
+    parser.add_argument('--data', type=str, default="cifar100", help='Choose dataset: cifar100, fruits, imagenet')
     
 
     
