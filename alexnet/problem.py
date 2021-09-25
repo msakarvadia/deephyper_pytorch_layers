@@ -1,91 +1,58 @@
-from deephyper.benchmark import HpProblem
+import torch
+import torchvision
+import torchvision.transforms as transforms
+from torch import nn
+import torch.optim as optim
+import time
+from torch.utils.data import Dataset, DataLoader
 
-# import os
-# import sys
 
-# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from torch_wrapper import use_knl  # noqa
+#alexnet base model for cifar100
+class model(nn.Module):
 
-# NOTE(MS): I have intentially left the ranges for some of the hyper-parameters large in
-# order to facilitate a large number of combinations. There will be configurations of
-# these ranges that cause errors related to kernels being larger than images, but I am
-# choosing to ignore those cases for now because limiting the ranges would greatly
-# reduce the valid combinations of hyper-parameters. Feel free to change ranges based
-# on your needs.
+    def __init__(self, num_classes: int = 100) -> None:
+        super(AlexNet, self).__init__()
+        self.features = nn.Sequential(
+            nn.Conv2d(3, 64, kernel_size=11, stride=4, padding=2),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, stride=2),
+            nn.Conv2d(64, 192, kernel_size=5, padding=2),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, stride=2),
+            nn.Conv2d(192, 384, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(384, 256, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(256, 256, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, stride=2),
+        )
+        self.avgpool = nn.AdaptiveAvgPool2d((6, 6))
+        self.classifier = nn.Sequential(
+            nn.Dropout(),
+            nn.Linear(256 * 6 * 6, 4096),
+            nn.ReLU(inplace=True),
+            nn.Dropout(),
+            nn.Linear(4096, 1024),
+            nn.ReLU(inplace=True),
+            nn.Linear(1024, num_classes),
+        )
 
-# TODO(MS): Implement conditional hyper-parameter ranges
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.features(x)
+        x = self.avgpool(x)
+        x = torch.flatten(x, 1)
+        x = self.classifier(x)
+        return x
 
-Problem = HpProblem()
-Problem.add_dim("batch_size", (1, 128))
-Problem.add_dim("image_size", [224])
-Problem.add_dim("conv1_in_chan", [3])
-Problem.add_dim("conv1_out_chan", (50, 150))
-Problem.add_dim("conv1_kern", (9, 13))
-Problem.add_dim("pool_size_1", (2, 5))
-Problem.add_dim("pool_size_2", (2, 5))
-Problem.add_dim("pool_size_5", (2, 5))
-Problem.add_dim("conv2_out_chan", (200, 350))
-Problem.add_dim("conv2_kern", (2, 8))
-Problem.add_dim("conv3_out_chan", (300, 450))
-Problem.add_dim("conv3_kern", (2, 8))
-Problem.add_dim("conv4_out_chan", (300, 450))
-Problem.add_dim("conv4_kern", (2, 8))
-Problem.add_dim("conv5_out_chan", (200, 350))
-Problem.add_dim("conv5_kern", (2, 8))
-Problem.add_dim("adaptive_pool_dim", (2, 8))
-Problem.add_dim("fc1_out", (500, 6000))
-Problem.add_dim("fc2_out", (500, 6000))
-Problem.add_dim("fc3_out", [100])
+# Additional information
+EPOCH = 0
+PATH = "model.pt"
+LOSS = 0
 
-if use_knl:
-    # Problem.add_dim("omp_num_threads", (8, 64))
-    Problem.add_dim("omp_num_threads", [64])
-    Problem.add_starting_point(
-        batch_size=10,
-        image_size=224,
-        conv1_in_chan=3,
-        conv1_out_chan=96,
-        conv1_kern=11,
-        pool_size_1=3,
-        pool_size_2=3,
-        pool_size_5=3,
-        conv2_out_chan=256,
-        conv2_kern=5,
-        conv3_out_chan=384,
-        conv3_kern=3,
-        conv4_out_chan=384,
-        conv4_kern=3,
-        conv5_out_chan=256,
-        conv5_kern=3,
-        adaptive_pool_dim=5,
-        fc1_out=4096,
-        fc2_out=1024,
-        fc3_out=100,
-        omp_num_threads=64,
-    )
-else:
-    Problem.add_starting_point(
-        batch_size=10,
-        image_size=224,
-        conv1_in_chan=3,
-        conv1_out_chan=96,
-        conv1_kern=11,
-        pool_size_1=3,
-        pool_size_2=3,
-        pool_size_5=3,
-        conv2_out_chan=256,
-        conv2_kern=5,
-        conv3_out_chan=384,
-        conv3_kern=3,
-        conv4_out_chan=384,
-        conv4_kern=3,
-        conv5_out_chan=256,
-        conv5_kern=3,
-        adaptive_pool_dim=5,
-        fc1_out=4096,
-        fc2_out=1024,
-        fc3_out=100,
-    )
-
-if __name__ == "__main__":
-    print(Problem)
+torch.save({
+            'epoch': EPOCH,
+            'model_state_dict': net.state_dict(),
+            'optimizer_state_dict': optimizer.state_dict(),
+            'loss': LOSS,
+            }, PATH)
