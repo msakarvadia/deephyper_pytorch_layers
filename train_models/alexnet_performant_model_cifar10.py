@@ -7,7 +7,7 @@ from torch import nn
 class net(nn.Module):
 
     def __init__(self, num_classes: int = 10) -> None:
-        super(AlexNet, self).__init__()
+        super(net, self).__init__()
         self.features = nn.Sequential(
             nn.Conv2d(3, 128, kernel_size=10, stride=4, padding=2),
             nn.ReLU(inplace=True),

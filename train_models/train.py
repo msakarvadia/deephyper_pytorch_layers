@@ -13,7 +13,14 @@ def main(args):
     #from alexnet_base_model_cifar10 import net
     #model = net()
     model_class = importlib.import_module(args.network_class_file)
-    model = model_class.net()
+    if args.model_family == "alexnet":
+        #TODO Might need to add a .get_net() function to the network class file
+        model = model_class.net()
+
+    if args.model_family == "vgg16":
+        #TODO Might need to add a .get_net() function to the network class file
+        model = model_class.get_model()
+
 
     print("loaded model architecture")
 
@@ -163,10 +170,11 @@ if __name__ == "__main__":
     parser.add_argument('--lr', type=float, default=0.001, help='Learning Rate')
     parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
     parser.add_argument('--epochs', type=int, default=1, help='Epochs to Train on')
-    parser.add_argument('--batch_size', type=int, default=64, help='Epochs to Train on')
-    parser.add_argument('--load_model_cp', type=str, default="model.pt", help='Full path to model *.pt checkpoint file')
-    parser.add_argument('--save_model_cp', type=str, default="model.pt", help='Full path to desired location for model *.pt checkpoint file')
-    parser.add_argument('--network_class_file', type=str, default="model.py", help='Name of file which defines model class - class must be named: net() (file needs to be stored somewhere in this git repo)')
+    parser.add_argument('--batch_size', type=int, help='Batch size', required=True)
+    parser.add_argument('--model_family', type=str, default="alexnet", help='alexnet or vgg16')
+    parser.add_argument('--load_model_cp', type=str, help='Full path to model *.pt checkpoint file', required=True)
+    parser.add_argument('--save_model_cp', type=str, help='Full path to desired location for model *.pt checkpoint file', required=True)
+    parser.add_argument('--network_class_file', type=str, help='Name of file which defines model class, omit the *.py ending - class must be named: net() (file must be stored this repo)', required=True)
     parser.add_argument('--data', type=str, default="cifar10", help='Choose dataset: cifar10, fruits, imagenet')
     
 
