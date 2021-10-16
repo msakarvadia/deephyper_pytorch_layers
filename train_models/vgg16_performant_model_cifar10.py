@@ -12,7 +12,7 @@ class net(nn.Module):
         num_classes: int = 10,
         init_weights: bool = True
     ) -> None:
-        super(VGG, self).__init__()
+        super(net, self).__init__()
         self.features = features
         self.avgpool = nn.AdaptiveAvgPool2d((2, 2))
         self.classifier = nn.Sequential(
