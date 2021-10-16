@@ -44,6 +44,9 @@ class net(nn.Module):
 print("Creating model")
 AlexNet_model = net()
 
+def get_model():
+    return AlexNet_model
+
 print("Saving model")
 # Additional information
 PATH = "/home/mansisak/deephyper_pytorch_layers/alexnet/alexnet_models/base_models/cifar10/alexnet_base_model_0_epoch.pt"

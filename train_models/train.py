@@ -10,19 +10,18 @@ import importlib
 
 def main(args):
     #load model from class
-    #from alexnet_base_model_cifar10 import net
-    #model = net()
     model_class = importlib.import_module(args.network_class_file)
-    if args.model_family == "alexnet":
-        #TODO Might need to add a .get_net() function to the network class file
-        model = model_class.net()
-
-    if args.model_family == "vgg16":
-        #TODO Might need to add a .get_net() function to the network class file
-        model = model_class.get_model()
-
-
+    model = model_class.get_model()
     print("loaded model architecture")
+    #if args.model_family == "alexnet":
+        #TODO Might need to add a .get_net() function to the network class file
+    #    model = model_class.net()
+
+    #if args.model_family == "vgg16":
+        #TODO Might need to add a .get_net() function to the network class file
+        #model = model_class.get_model()
+
+
 
     #load model from checkpoint
     checkpoint = torch.load(args.load_model_cp)

@@ -4,29 +4,28 @@ from torch import nn
 from typing import Union, List, Dict, Any, cast
 
 
-#Now using the AlexNet
 class net(nn.Module):
 
     def __init__(
-            self,
-            features: nn.Module,
-            num_classes: int = 10,
-            init_weights: bool = True
-        ) -> None:
-            super(net, self).__init__()
-            self.features = features
-            self.avgpool = nn.AdaptiveAvgPool2d((7, 7))
-            self.classifier = nn.Sequential(
-                nn.Linear(512 * 7 * 7, 4096),
-                nn.ReLU(True),
-                nn.Dropout(),
-                nn.Linear(4096, 4096),
-                nn.ReLU(True),
-                nn.Dropout(),
-                nn.Linear(4096, num_classes),
-            )
-            if init_weights:
-                self._initialize_weights()
+        self,
+        features: nn.Module,
+        num_classes: int = 10,
+        init_weights: bool = True
+    ) -> None:
+        super(VGG, self).__init__()
+        self.features = features
+        self.avgpool = nn.AdaptiveAvgPool2d((2, 2))
+        self.classifier = nn.Sequential(
+            nn.Linear(423 * 2 * 2, 13613),
+            nn.ReLU(True),
+            nn.Dropout(),
+            nn.Linear(13613, 638),
+            nn.ReLU(True),
+            nn.Dropout(),
+            nn.Linear(638, num_classes),
+        )
+        if init_weights:
+            self._initialize_weights()
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = self.features(x)
@@ -55,10 +54,10 @@ def make_layers(cfg: List[Union[str, int]], batch_norm: bool = False) -> nn.Sequ
     in_channels = 3
     for v in cfg:
         if v == 'M':
-            layers += [nn.MaxPool2d(kernel_size=2, stride=2)]
+            layers += [nn.MaxPool2d(kernel_size=3, stride=2)]
         else:
             v = cast(int, v)
-            conv2d = nn.Conv2d(in_channels, v, kernel_size=3, padding=1)
+            conv2d = nn.Conv2d(in_channels, v, kernel_size=4, padding=1)
             if batch_norm:
                 layers += [conv2d, nn.BatchNorm2d(v), nn.ReLU(inplace=True)]
             else:
@@ -68,15 +67,16 @@ def make_layers(cfg: List[Union[str, int]], batch_norm: bool = False) -> nn.Sequ
 
 
 cfgs: Dict[str, List[Union[str, int]]] = {
-    'VGG16': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
+    'VGG16': [64, 64, 'M', 199, 199, 'M', 384, 384, 384, 'M', 765, 765, 765, 'M', 423, 423, 423, 'M'],
 }
+
 
 print("Creating Model")
 VGG16_model = net(make_layers(cfgs['VGG16'], batch_norm=True))
 
 print("Saving model")
 # Additional information
-PATH = "/home/mansisak/deephyper_pytorch_layers/vgg16/vgg16_models/base_models/cifar10/vgg16_base_model_0_epoch.pt"
+PATH = "/home/mansisak/deephyper_pytorch_layers/vgg16/vgg16_models/performant_models/cifar10/vgg16_performant_model_0_epoch.pt"
 torch.save({'model_state_dict': VGG16_model.state_dict()}, PATH)
 
 print("Model saved")

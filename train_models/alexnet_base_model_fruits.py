@@ -34,7 +34,7 @@ class net(nn.Module):
                 nn.Linear(1024, num_classes),
             )
 
-        def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
             x = self.features(x)
             x = self.avgpool(x)
             x = torch.flatten(x, 1)
@@ -43,6 +43,9 @@ class net(nn.Module):
 
 print("Creating model")
 AlexNet_model = net()
+
+def get_model():
+    return AlexNet_model
 
 print("Saving model")
 # Additional information
