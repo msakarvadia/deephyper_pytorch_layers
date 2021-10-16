@@ -81,3 +81,6 @@ print("Model saved")
 
 def get_model():
     return VGG16_model
+
+def get_batch_size():
+    return 128

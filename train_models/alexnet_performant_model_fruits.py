@@ -54,3 +54,9 @@ print("Model saved")
 
 def get_model():
     return AlexNet_model
+
+def get_batch_size():
+    return 125
+
+def get_model():
+    return AlexNet_model

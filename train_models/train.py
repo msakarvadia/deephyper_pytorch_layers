@@ -12,16 +12,8 @@ def main(args):
     #load model from class
     model_class = importlib.import_module(args.network_class_file)
     model = model_class.get_model()
+    batch_size = model_class.get_batch_size()
     print("loaded model architecture")
-    #if args.model_family == "alexnet":
-        #TODO Might need to add a .get_net() function to the network class file
-    #    model = model_class.net()
-
-    #if args.model_family == "vgg16":
-        #TODO Might need to add a .get_net() function to the network class file
-        #model = model_class.get_model()
-
-
 
     #load model from checkpoint
     checkpoint = torch.load(args.load_model_cp)
@@ -52,26 +44,26 @@ def main(args):
 
     if args.data == "cifar10":
         train_data = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-        trainloader = torch.utils.data.DataLoader(train_data, batch_size=64, shuffle=True, num_workers=2)
+        trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=2)
 
         test_data = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
-        testloader = torch.utils.data.DataLoader(test_data, batch_size=args.batch_size, shuffle=False, num_workers=2)
+        testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=2)
         print("loaded cifar10")
 
     if args.data == "fruits":
         train_data = torchvision.datasets.ImageFolder(root='/home/felker/resnet-ASP/fruits-360/Training', transform=transform)
-        trainloader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size, shuffle=True, num_workers=2)
+        trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=2)
 
         test_data = torchvision.datasets.ImageFolder(root='/home/felker/resnet-ASP/fruits-360/Test', transform=transform)
-        testloader = torch.utils.data.DataLoader(test_data, batch_size=args.batch_size, shuffle=False, num_workers=2)
+        testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=2)
         print("loaded fruits")
 
     if args.data == "imagenet":
         train_data = torchvision.datasets.ImageFolder(root='/home/felker/resnet-ASP/imagenet/train', transform=transform)
-        trainloader = torch.utils.data.DataLoader(train_data, batch_size=args.batch_size, shuffle=True, num_workers=2)
+        trainloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=2)
 
         test_data = torchvision.datasets.ImageFolder(root='/home/felker/resnet-ASP/imagenet/val', transform=transform)
-        testloader = torch.utils.data.DataLoader(test_data, batch_size=args.batch_size, shuffle=False, num_workers=2)
+        testloader = torch.utils.data.DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=2)
         print("loaded imagenet")
 
     #define accuracy funcitons
@@ -155,7 +147,6 @@ def main(args):
     print("Final Accuracy: ", accuracy())
 
     #save model to checkpoint
-    #TODO
     PATH = args.save_model_cp
 
     torch.save({
@@ -169,7 +160,6 @@ if __name__ == "__main__":
     parser.add_argument('--lr', type=float, default=0.001, help='Learning Rate')
     parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
     parser.add_argument('--epochs', type=int, default=1, help='Epochs to Train on')
-    parser.add_argument('--batch_size', type=int, help='Batch size', required=True)
     parser.add_argument('--model_family', type=str, default="alexnet", help='alexnet or vgg16')
     parser.add_argument('--load_model_cp', type=str, help='Full path to model *.pt checkpoint file', required=True)
     parser.add_argument('--save_model_cp', type=str, help='Full path to desired location for model *.pt checkpoint file', required=True)
