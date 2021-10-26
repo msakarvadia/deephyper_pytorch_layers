@@ -5,8 +5,11 @@ from torch import nn
 import torch.optim as optim
 import time
 from torch.utils.data import Dataset, DataLoader
-import argparse
+import argparse, sys
 import importlib
+sys.path.append('../..')
+
+from tools.CalcMean import CalcMean
 
 def main(args):
     #load model from class
@@ -67,8 +70,9 @@ def main(args):
         print("loaded imagenet")
 
     #define accuracy funcitons
-    def accuracy():
+    def accuracy(model):
         #Testing Accuracy
+        model.eval()
         correct = 0
         total = 0
         with torch.no_grad():
@@ -89,20 +93,28 @@ def main(args):
     start = time.time()
     epochs = []
     acc = []
-    fwd_pass_time = []
-    back_pass_time = []
+    avg_input_time = CalcMean()
+    avg_fwd_pass_time = CalcMean()
+    avg_back_pass_time = CalcMean()
     for epoch in range(args.epochs):  # loop over the dataset multiple times
         epochs.append(epoch)
-        acc.append(accuracy())
+        acc.append(accuracy(model))
         print(epochs)
         print(acc)
         running_loss = 0.0
         for i, data in enumerate(trainloader, 0):
             # get the inputs; data is a list of [inputs, labels]
+            torch.cuda.synchronize()
+            start_input = time.time()
+
             inputs, labels = data[0].to(device), data[1].to(device)
 
             # zero the parameter gradients
             optimizer.zero_grad()
+
+            torch.cuda.synchronize()
+            end_input = time.time()
+            avg_input_time.add_value(end_input - start_input)
 
             # forward pass
             torch.cuda.synchronize()
@@ -113,7 +125,7 @@ def main(args):
 
             torch.cuda.synchronize()
             end_fwd = time.time()
-            fwd_pass_time.append(end_fwd - start_fwd)
+            avg_fwd_pass_time.add_value(end_fwd - start_fwd)
 
             # backward pass 
             torch.cuda.synchronize()
@@ -127,7 +139,7 @@ def main(args):
 
             torch.cuda.synchronize()
             end_bwd = time.time()
-            back_pass_time.append(end_bwd - start_fwd)
+            avg_back_pass_time.add_value(end_bwd - start_bwd)
 
             # print statistics
             running_loss += loss.item()
@@ -139,12 +151,13 @@ def main(args):
     torch.cuda.synchronize()
     end = time.time()
     print("Time to train model: ", end - start)
-    print("Average time for forward pass: ", sum(fwd_pass_time)/len(fwd_pass_time))
-    print("Average time for backward pass: ", sum(back_pass_time)/len(back_pass_time))
+    print("Average time for loading input data: ", avg_input_time.mean())
+    print("Average time for forward pass: ", avg_fwd_pass_time.mean())
+    print("Average time for backward pass: ", avg_back_pass_time.mean())
     print("epoch and accuracy during training: ")
     print(epochs)
     print(acc)
-    print("Final Accuracy: ", accuracy())
+    print("Final Accuracy: ", accuracy(model))
 
     #save model to checkpoint
     PATH = args.save_model_cp
@@ -160,7 +173,6 @@ if __name__ == "__main__":
     parser.add_argument('--lr', type=float, default=0.001, help='Learning Rate')
     parser.add_argument('--momentum', type=float, default=0.9, help='Momentum')
     parser.add_argument('--epochs', type=int, default=1, help='Epochs to Train on')
-    parser.add_argument('--model_family', type=str, default="alexnet", help='alexnet or vgg16')
     parser.add_argument('--load_model_cp', type=str, help='Full path to model *.pt checkpoint file', required=True)
     parser.add_argument('--save_model_cp', type=str, help='Full path to desired location for model *.pt checkpoint file', required=True)
     parser.add_argument('--network_class_file', type=str, help='Name of file which defines model class, omit the *.py ending - class must be named: net() (file must be stored this repo)', required=True)
