@@ -44,8 +44,7 @@ class net(nn.Module):
 print("Creating model")
 AlexNet_model = net()
 
-def get_model():
-    return AlexNet_model
+
 
 print("Saving model")
 # Additional information
@@ -53,3 +52,9 @@ PATH = "/home/mansisak/deephyper_pytorch_layers/alexnet/alexnet_models/base_mode
 torch.save({'model_state_dict': AlexNet_model.state_dict()}, PATH)
 
 print("Model saved")
+
+def get_batch_size():
+    return 64
+
+def get_model():
+    return AlexNet_model

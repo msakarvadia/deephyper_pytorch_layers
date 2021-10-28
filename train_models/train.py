@@ -70,6 +70,7 @@ def main(args):
         print("loaded imagenet")
 
     #define accuracy funcitons
+    avg_fwd_pass_for_acc_time = CalcMean()
     def accuracy(model):
         #Testing Accuracy
         model.eval()
@@ -78,7 +79,15 @@ def main(args):
         with torch.no_grad():
             for data in testloader:
                 images, labels = data[0].to(device), data[1].to(device)
+
+                #Check Time on forward pass
+                torch.cuda.synchronize()
+                start_fwd_acc = time.time()
                 outputs = model(images)
+                torch.cuda.synchronize()
+                end_fwd_acc = time.time()
+                avg_fwd_pass_for_acc_time.add_value(end_fwd_acc - start_fwd_acc)
+
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
@@ -93,15 +102,31 @@ def main(args):
     start = time.time()
     epochs = []
     acc = []
+    avg_acc_time = CalcMean()
     avg_input_time = CalcMean()
     avg_fwd_pass_time = CalcMean()
     avg_back_pass_time = CalcMean()
+    avg_epoch_training_time = CalcMean()
     for epoch in range(args.epochs):  # loop over the dataset multiple times
         epochs.append(epoch)
+
+        #Check accuracy
+        torch.cuda.synchronize()
+        start_acc = time.time()
+
         acc.append(accuracy(model))
+
+        torch.cuda.synchronize()
+        end_acc = time.time()
+        avg_acc_time.add_value(end_acc - start_acc)
+
         print(epochs)
         print(acc)
         running_loss = 0.0
+
+        #Time to train one epoch
+        torch.cuda.synchronize()
+        start_epoch = time.time()
         for i, data in enumerate(trainloader, 0):
             # get the inputs; data is a list of [inputs, labels]
             torch.cuda.synchronize()
@@ -148,12 +173,19 @@ def main(args):
                       (epoch + 1, i + 1, running_loss / 500))
                 running_loss = 0.0
 
+        torch.cuda.synchronize()
+        end_epoch = time.time()
+        avg_epoch_training_time.add_value(end_epoch - start_epoch)
+
     torch.cuda.synchronize()
     end = time.time()
     print("Time to train model: ", end - start)
-    print("Average time for loading input data: ", avg_input_time.mean())
-    print("Average time for forward pass: ", avg_fwd_pass_time.mean())
-    print("Average time for backward pass: ", avg_back_pass_time.mean())
+    print("Average time for calculating accuracy over whole val set: ", avg_acc_time.mean())
+    print("Average time for forward pass over batch while checking accuracy: ", avg_fwd_pass_for_acc_time.mean())
+    print("Average time for training one full epoch: ", avg_epoch_training_time.mean())
+    print("Average time for loading input data during training: ", avg_input_time.mean())
+    print("Average time for forward pass over batch during training: ", avg_fwd_pass_time.mean())
+    print("Average time for backward pass over batch during training: ", avg_back_pass_time.mean())
     print("epoch and accuracy during training: ")
     print(epochs)
     print(acc)
